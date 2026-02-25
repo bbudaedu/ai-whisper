@@ -17,7 +17,8 @@ import json
 import time
 import logging
 import argparse
-import requests
+
+from pipeline.api_client import ResilientAPIClient
 
 # ================= 設定區域 =================
 
@@ -126,41 +127,17 @@ def build_srt(subtitles):
     return "\n\n".join(blocks) + "\n"
 
 
-def call_api(prompt, max_retries=3):
-    """呼叫中轉 API"""
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {API_KEY}",
-    }
-    payload = {
-        "model": PROOFREAD_MODEL,
-        "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 8192,
-    }
+# 建立統一 API 客戶端（含指數退避 + Circuit Breaker）
+_api_client = ResilientAPIClient(
+    api_base_url=API_BASE_URL,
+    api_key=API_KEY,
+    model=PROOFREAD_MODEL,
+)
 
-    for attempt in range(max_retries):
-        try:
-            resp = requests.post(
-                API_BASE_URL, headers=headers, json=payload, timeout=300
-            )
-            resp.raise_for_status()
-            data = resp.json()
-            message = data["choices"][0]["message"]
-            content = message.get("content", "")
-            reasoning = message.get("reasoning_content", "")
-            
-            # 支援會把所有輸出放在 reasoning_content 的中轉模型
-            result_text = content if content else reasoning
-            return result_text
-        except requests.exceptions.Timeout:
-            logger.warning(f"API 逾時 (第 {attempt+1} 次)")
-            if attempt < max_retries - 1:
-                time.sleep(5)
-        except Exception as e:
-            logger.error(f"API 呼叫失敗: {e}")
-            if attempt < max_retries - 1:
-                time.sleep(5)
-    return None
+
+def call_api(prompt, max_retries=3):
+    """呼叫中轉 API（透過 ResilientAPIClient）"""
+    return _api_client.call(prompt)
 
 
 def proofread_chunk(chunk_subtitles, lecture_text, chunk_num, total_chunks):
@@ -175,8 +152,6 @@ def proofread_chunk(chunk_subtitles, lecture_text, chunk_num, total_chunks):
     # 建立 prompt
     lecture_section = ""
     if lecture_text:
-        # 只取講義前 3000 字元做參考（避免 token 過多）
-        # 因為講義是固定的，模型會記住整本，這裡取關鍵詞彙部分足夠
         lecture_section = f"""
 以下是上課講義內容（供你參考佛學詞彙正確用字）：
 <講義>
