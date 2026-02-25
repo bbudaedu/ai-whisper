@@ -1,0 +1,8 @@
+{
+  "proofread_model": "gemini-3-flash",
+  "lecture_pdf": "/mnt/nas/Whisper_auto_rum/T097V/CH857-03-01-001.pdf",
+  "whisper_model": "large-v2",
+  "whisper_lang": "Chinese",
+  "whisper_prompt": "佛教公案選集 不要標點符號 ",
+  "email_to": "tyguo@budaedu.org"
+}
