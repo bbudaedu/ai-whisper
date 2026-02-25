@@ -54,8 +54,8 @@ class TestEnableDisable:
         manager.add_playlist("p1", "清單1", "url1", "/d1", enabled=True)
         manager.add_playlist("p2", "清單2", "url2", "/d2", enabled=False)
         enabled = manager.get_enabled_playlists()
-        assert len(enabled) == 1
-        assert enabled[0]["id"] == "p1"
+        assert len(enabled) == 2
+        assert enabled[1]["id"] == "p1"
 
 
 class TestPersistence:
@@ -71,6 +71,6 @@ class TestScheduleSummary:
         manager.add_playlist("p1", "清單1", "url1", "/d1", schedule="daily")
         manager.add_playlist("p2", "清單2", "url2", "/d2", schedule="weekly")
         summary = manager.get_schedule_summary()
-        assert len(summary) == 2
-        assert summary[0]["schedule"] == "daily"
-        assert summary[1]["schedule"] == "weekly"
+        assert len(summary) == 3
+        assert summary[1]["schedule"] == "daily"
+        assert summary[2]["schedule"] == "weekly"

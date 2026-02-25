@@ -39,7 +39,8 @@ class PlaylistManager:
                     return json.load(f)
             except Exception as e:
                 logger.error(f"讀取配置失敗: {e}")
-        return dict(DEFAULT_CONFIG)
+        import copy
+        return copy.deepcopy(DEFAULT_CONFIG)
 
     def _save_config(self):
         try:
