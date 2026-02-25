@@ -14,9 +14,10 @@ from docx.oxml.ns import qn
 from openpyxl.utils import get_column_letter
 
 import logging
-import requests
 import json
 import time
+
+from pipeline.api_client import ResilientAPIClient
 
 # 設定 logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -112,36 +113,17 @@ def srt_time_to_seconds(time_str):
     h_m_s = parts[0].split(':')
     return int(h_m_s[0])*3600 + int(h_m_s[1])*60 + int(h_m_s[2]) + int(parts[1])/1000.0
 
-def call_gemini_api(prompt, max_retries=3):
-    """呼叫中轉 API 進行標點與分段"""
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {API_KEY}",
-    }
-    payload = {
-        "model": PUNCTUATION_MODEL,
-        "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 8192,
-    }
+# 建立統一 API 客戶端（含指數退避 + Circuit Breaker）
+_api_client = ResilientAPIClient(
+    api_base_url=API_BASE_URL,
+    api_key=API_KEY,
+    model=PUNCTUATION_MODEL,
+)
 
-    for attempt in range(max_retries):
-        try:
-            resp = requests.post(API_BASE_URL, headers=headers, json=payload, timeout=300)
-            resp.raise_for_status()
-            data = resp.json()
-            message = data["choices"][0]["message"]
-            content = message.get("content", "")
-            reasoning = message.get("reasoning_content", "")
-            return content if content else reasoning
-        except requests.exceptions.Timeout:
-            logger.warning(f"API 逾時 (第 {attempt+1} 次)")
-            if attempt < max_retries - 1:
-                time.sleep(5)
-        except Exception as e:
-            logger.error(f"API 呼叫失敗: {e}")
-            if attempt < max_retries - 1:
-                time.sleep(5)
-    return None
+
+def call_gemini_api(prompt, max_retries=3):
+    """呼叫中轉 API 進行標點與分段（透過 ResilientAPIClient）"""
+    return _api_client.call(prompt)
 
 def format_text_with_ai(sentences):
     """將句子分批送給 AI 加上標點與分段"""
@@ -221,8 +203,8 @@ def generate_excel_and_docx(episode_dir, base_name):
     
     aligned_whisper, aligned_gemini = align_sequences(lines_whisper, lines_gemini)
     df_aligned = pd.DataFrame({'whisper': aligned_whisper, 'gemini': aligned_gemini})
-    df_aligned = df_aligned[df_aligned['whisper'] != ''].copy() # 過濾掉 Whisper 是空行的部分 (基準)
-    df_aligned.loc[df_aligned['gemini'] == '', 'gemini'] = df_aligned['whisper'] # 若 Gemini 為空則拿 Whisper 補
+    df_aligned = df_aligned[df_aligned['whisper'] != ''].copy()
+    df_aligned.loc[df_aligned['gemini'] == '', 'gemini'] = df_aligned['whisper']
 
     final_gemini_texts = df_aligned['gemini'].astype(str).str.strip().tolist()
     
@@ -238,7 +220,6 @@ def generate_excel_and_docx(episode_dir, base_name):
         raw_start_times = df_timeline['開始時間'].tolist()
         raw_end_times = df_timeline['結束時間'].tolist()
         
-        # 確認數量是否匹配
         min_len = min(len(final_gemini_texts), len(raw_start_times))
         items_with_time = []
         for i in range(min_len):
@@ -252,7 +233,7 @@ def generate_excel_and_docx(episode_dir, base_name):
             })
 
         total_audio_duration_seconds = items_with_time[-1]['end_s'] if items_with_time else 0
-        segment_duration_seconds = 30 * 60 # 每 30 分鐘一個 part
+        segment_duration_seconds = 30 * 60
         total_parts = math.ceil(total_audio_duration_seconds / segment_duration_seconds) if total_audio_duration_seconds > 0 else 1
         
         rows_for_excel_output = []
@@ -290,10 +271,8 @@ def generate_excel_and_docx(episode_dir, base_name):
 
     # 4. 生成 Word (Docx) 給學員校對
     logger.info("生成 Docx 文件...")
-    # 提取剛剛 generated 的 student output as pure text string
     text_content = "\n".join([str(rows[0]) for rows in rows_for_excel_output if rows[0] is not None])
     
-    # helper for docx generating
     def create_docx(out_path):
         document = docx.Document()
         style = document.styles['Normal']
@@ -358,7 +337,6 @@ def generate_excel_and_docx(episode_dir, base_name):
             
         document.save(out_path)
 
-    # 萃取標題並整理成更好的檔名形式，例如: 佛教公案選集012_簡豐文居士...
     title_part = base_name.split('__')[0]
     match = re.search(r'佛教公案選集\s*簡豐文居士\s*(\d+)', title_part)
     if match:
@@ -391,7 +369,7 @@ def generate_excel_and_docx(episode_dir, base_name):
         style.element.rPr.rFonts.set(qn('w:eastAsia'), '標楷體')
         font.size = Pt(16)
         p_format.space_before = Pt(0)
-        p_format.space_after = Pt(12) # 段落後加間距
+        p_format.space_after = Pt(12)
         p_format.line_spacing_rule = WD_LINE_SPACING.EXACTLY
         p_format.line_spacing = Pt(24)
 
@@ -399,18 +377,16 @@ def generate_excel_and_docx(episode_dir, base_name):
         section.top_margin = Cm(1.27); section.bottom_margin = Cm(1.27)
         section.left_margin = Cm(1.27); section.right_margin = Cm(1.27)
 
-        # 加入標題
         title_para = document.add_paragraph(base_name)
         title_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
         title_para.runs[0].font.bold = True
         title_para.runs[0].font.size = Pt(18)
 
-        # 寫入段落
         paragraphs = full_text.split('\n')
         for p in paragraphs:
             if p.strip():
                 doc_para = document.add_paragraph(p.strip())
-                doc_para.paragraph_format.first_line_indent = Pt(32) # 首行縮排兩字元
+                doc_para.paragraph_format.first_line_indent = Pt(32)
 
         document.save(out_path)
 
