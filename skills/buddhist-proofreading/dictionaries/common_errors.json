@@ -1,0 +1,13 @@
+{
+  "_description": "佛教講座常見同音字錯誤字典，格式: 錯誤 -> 正確",
+  "errors": [
+    {"wrong": "釋迦摩尼佛", "correct": "釋迦牟尼佛"},
+    {"wrong": "菩提薩埵", "correct": "菩提薩埱"},
+    {"wrong": "般若菩提波羅密多", "correct": "般若波羅蜜多"},
+    {"wrong": "三定論", "correct": "三藏十二部經"},
+    {"wrong": "大經大論", "correct": "大經大論"},
+    {"wrong": "修多羅三藐三菩提", "correct": "阿耨多羅三藐三菩提"},
+    {"wrong": "菩提心", "correct": "菩提心"},
+    {"wrong": "聞怖魔", "correct": "聞伏魔"}
+  ]
+}
