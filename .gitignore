@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.env
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project-specific
+yt_downloads/
+yt_whisper_output/
+*.wav
+*.lock
+
+# Caches
+lecture_cache.txt
+
+# Agent framework (too large, managed separately)
+.agent/
+
+# Sensitive
+cookies.txt
+
+# Large output files (kept on NAS, not in repo)
+*.json
+!config.json
+!package.json
+!package-lock.json
+
+# SRT/media test files at root
+*.srt
+*.vtt
+*.tsv
+*.txt
+!requirements.txt
