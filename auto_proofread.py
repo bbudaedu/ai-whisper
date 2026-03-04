@@ -265,15 +265,68 @@ def main():
     args = parser.parse_args()
 
     srt_path = args.srt_file
-    if not os.path.exists(srt_path):
-        logger.error(f"SRT 檔案不存在: {srt_path}")
-        sys.exit(1)
 
     logger.info("=" * 60)
     logger.info("Whisper SRT 校對腳本啟動")
     logger.info(f"輸入: {srt_path}")
     logger.info(f"模型: {PROOFREAD_MODEL}")
     logger.info("=" * 60)
+
+    # 1. 載入講義
+    lecture_text = load_lecture_text()
+    if not lecture_text:
+        logger.warning("未能載入講義，將進行無講義校對")
+
+    if srt_path.lower() == "auto":
+        # 自動尋找尚未校對的 SRT
+        nas_base = config_data.get("nas_output_base", "/mnt/nas/Whisper_auto_rum/T097V")
+        state_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "processed_videos.json")
+        import glob
+        
+        to_process = []
+        if os.path.exists(state_file):
+            with open(state_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            
+            for vid, info in data.items():
+                title = info.get("title", "")
+                match = re.search(r'(\d+)\s*$', title)
+                if match:
+                    ep = str(int(match.group(1))).zfill(3)
+                else:
+                    ep = title.strip().replace(' ', '_')
+                
+                ep_dir = os.path.join(nas_base, f"T097V{ep}")
+                if os.path.isdir(ep_dir):
+                    srts = glob.glob(os.path.join(ep_dir, "*.srt"))
+                    original_srts = [s for s in srts if not s.endswith("_proofread.srt")]
+                    proofread_srts = [s for s in srts if s.endswith("_proofread.srt")]
+                    
+                    if original_srts and not proofread_srts:
+                        to_process.append(original_srts[0])
+        
+        if not to_process:
+            logger.info("太棒了！所有資料夾都沒有需要校對的 SRT 檔案。")
+            return
+            
+        for target_srt in to_process:
+            logger.info(f">>> 開始自動校對: {target_srt}")
+            try:
+                corrected = proofread_srt(target_srt, lecture_text)
+                if corrected:
+                    base = os.path.splitext(target_srt)[0]
+                    output_path = f"{base}_proofread.srt"
+                    srt_content = build_srt(corrected)
+                    with open(output_path, "w", encoding="utf-8") as f:
+                        f.write(srt_content)
+                    logger.info(f"自動校對完成: {output_path}")
+            except Exception as e:
+                logger.error(f"自動校對失敗 {target_srt}: {e}")
+        return
+
+    if not os.path.exists(srt_path):
+        logger.error(f"SRT 檔案不存在: {srt_path}")
+        sys.exit(1)
 
     # 1. 載入講義
     lecture_text = load_lecture_text()

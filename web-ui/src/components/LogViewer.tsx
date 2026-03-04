@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
-const API_BASE = `http://${window.location.hostname}:8000/api`;
+const API_BASE = `http://${window.location.hostname}:8002/api`;
 
 export default function LogViewer() {
     const [logType, setLogType] = useState('proofread');

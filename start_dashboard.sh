@@ -6,9 +6,9 @@ pkill -f "uvicorn api_server:app"
 pkill -f "vite"
 
 # Start Python API Backend in the background
-echo "-> 啟動 FastAPI 後端伺服器 (Port 8000)"
+echo "-> 啟動 FastAPI 後端伺服器 (Port 8002)"
 cd /home/budaedu/ai-whisper
-nohup /home/budaedu/ai-whisper/venv/bin/python3 -m uvicorn api_server:app --host 0.0.0.0 --port 8000 > backend.log 2>&1 &
+nohup /home/budaedu/ai-whisper/venv/bin/python3 -m uvicorn api_server:app --host 0.0.0.0 --port 8002 > backend.log 2>&1 &
 
 # Start Vite Frontend in the background
 echo "-> 啟動 Vue/React 前端伺服器 (Port 5173)"

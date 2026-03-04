@@ -4,12 +4,14 @@ import { Play, Settings, TerminalSquare, LayoutDashboard, Database, HardDrive, R
 import LogViewer from './components/LogViewer';
 import TaskTracker from './components/TaskTracker';
 import SettingsPanel from './components/SettingsPanel';
+import PlaylistDashboard from './components/PlaylistDashboard';
 
-const API_BASE = `http://${window.location.hostname}:8000/api`;
+const API_BASE = `http://${window.location.hostname}:8002/api`;
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [stats, setStats] = useState<any>({});
+  const [dashboardData, setDashboardData] = useState<any>(null);
 
   const fetchStatus = async () => {
     try {
@@ -20,9 +22,22 @@ function App() {
     }
   };
 
+  const fetchDashboard = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/dashboard`);
+      setDashboardData(res.data);
+    } catch (e) {
+      console.error('Failed to fetch dashboard', e);
+    }
+  };
+
   useEffect(() => {
     fetchStatus();
-    const interval = setInterval(fetchStatus, 5000);
+    fetchDashboard();
+    const interval = setInterval(() => {
+      fetchStatus();
+      fetchDashboard();
+    }, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -89,36 +104,31 @@ function App() {
         <div className="flex-1 overflow-y-auto p-4 md:p-8">
           {activeTab === 'dashboard' && (
             <div className="max-w-6xl mx-auto space-y-6">
-              {/* Stats Row */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white dark:bg-[#1c2128] rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-                  <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">已處理影片總數</h3>
-                  <div className="text-3xl font-bold">{Object.keys(stats).length}</div>
-                </div>
-                <div className="bg-white dark:bg-[#1c2128] rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
-                  <button
-                    onClick={() => axios.post(`${API_BASE}/task`, { action: 'proofread', target: 'auto' })}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-4 py-3 font-medium flex items-center justify-center space-x-2 transition-colors focus:ring-4 focus:ring-indigo-500/20"
-                  >
-                    <Play size={18} />
-                    <span>一鍵啟動自動校對</span>
-                  </button>
-                </div>
-                <div className="bg-white dark:bg-[#1c2128] rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
-                  <button
-                    onClick={() => axios.post(`${API_BASE}/task`, { action: 'whisper', target: 'auto' })}
-                    className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl px-4 py-3 font-medium flex items-center justify-center space-x-2 transition-colors"
-                  >
-                    <Settings size={18} />
-                    <span>執行 Whisper 轉錄</span>
-                  </button>
-                </div>
+              {/* Action Buttons */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button
+                  onClick={() => axios.post(`${API_BASE}/task`, { action: 'proofread', target: 'auto' })}
+                  className="bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl px-5 py-3.5 font-medium flex items-center justify-center space-x-2 transition-colors focus:ring-4 focus:ring-blue-500/20 cursor-pointer"
+                >
+                  <Play size={18} />
+                  <span>一鍵啟動自動校對</span>
+                </button>
+                <button
+                  onClick={() => axios.post(`${API_BASE}/task`, { action: 'whisper', target: 'auto' })}
+                  className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl px-5 py-3.5 font-medium flex items-center justify-center space-x-2 transition-colors cursor-pointer"
+                >
+                  <Settings size={18} />
+                  <span>執行 Whisper 轉錄</span>
+                </button>
               </div>
 
-              {/* Task Tracker */}
+              {/* Multi-Playlist Dashboard */}
+              <PlaylistDashboard data={dashboardData} />
+
+              {/* Legacy Task Tracker */}
               <div className="bg-white dark:bg-[#1c2128] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                 <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-                  <h2 className="text-lg font-semibold">任務追蹤 (Task Tracking)</h2>
+                  <h2 className="text-lg font-semibold">全部影片追蹤 (All Videos)</h2>
                 </div>
                 <TaskTracker stats={stats} />
               </div>

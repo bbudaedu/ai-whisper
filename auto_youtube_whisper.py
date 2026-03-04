@@ -37,6 +37,8 @@ except ImportError:
 
 # ================= 設定區域 =================
 
+from pipeline.playlist_manager import PlaylistManager
+
 # 工作目錄
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -88,6 +90,7 @@ logging.basicConfig(
         logging.FileHandler(LOG_FILE, encoding="utf-8"),
         logging.StreamHandler(),
     ],
+    force=True,  # Ensure handlers are applied even if root logger was pre-configured
 )
 logger = logging.getLogger(__name__)
 
@@ -271,6 +274,15 @@ def download_audio(video, episode_dir):
     ).strip()
     if not safe_title:
         safe_title = video_id
+        
+    # 尋找已存在的 WAV 檔案
+    pattern = os.path.join(episode_dir, f"{safe_title}__{video_id}.*")
+    matches = glob.glob(pattern)
+    wav_files = [m for m in matches if m.endswith(".wav")]
+    if wav_files:
+        logger.info(f"發現已下載的音訊，跳過下載: {wav_files[0]}")
+        return wav_files[0]
+
     output_template = os.path.join(episode_dir, f"{safe_title}__{video_id}.%(ext)s")
 
     cmd = [
@@ -316,6 +328,14 @@ def download_audio(video, episode_dir):
 def run_whisper(audio_path, episode_dir):
     """使用 Whisper large-v2 進行語音辨識"""
     basename = os.path.splitext(os.path.basename(audio_path))[0]
+    
+    # 檢查是否已經有辨識結果
+    srt_path = os.path.join(episode_dir, f"{basename}.srt")
+    txt_path = os.path.join(episode_dir, f"{basename}.txt")
+    if os.path.exists(srt_path) and os.path.exists(txt_path):
+        logger.info(f"發現已完成的 Whisper 辨識結果，跳過辨識: {srt_path}")
+        return {"srt": srt_path, "txt": txt_path, "basename": basename}
+
     logger.info(f"正在執行 Whisper 辨識: {basename}")
 
     cmd = [
@@ -328,7 +348,9 @@ def run_whisper(audio_path, episode_dir):
     ]
 
     try:
-        subprocess.run(cmd, check=True, timeout=7200)  # 最長 2 小時
+        # Redirect whisper stdout/stderr to log file to keep cron log clean
+        with open(LOG_FILE, "a", encoding="utf-8") as log_fh:
+            subprocess.run(cmd, check=True, timeout=7200, stdout=log_fh, stderr=log_fh)
     except subprocess.TimeoutExpired:
         logger.error(f"Whisper 辨識逾時 (7200秒): {basename}")
         return None
@@ -428,16 +450,22 @@ def process_video(video):
     proofread_status = False
     if PROOFREAD_AVAILABLE and whisper_result.get("srt"):
         try:
-            logger.info("正在进行 Gemini 校對...")
-            lecture_text = load_lecture_text()
-            corrected = proofread_srt(whisper_result["srt"], lecture_text)
-            if corrected:
-                base = os.path.splitext(whisper_result["srt"])[0]
-                proofread_srt_path = f"{base}_proofread.srt"
-                with open(proofread_srt_path, "w", encoding="utf-8") as f:
-                    f.write(build_srt(corrected))
-                logger.info(f"Gemini 校對完成: {proofread_srt_path}")
+            base = os.path.splitext(whisper_result["srt"])[0]
+            proofread_srt_path = f"{base}_proofread.srt"
+            
+            # 檢查是否已經有校對結果
+            if os.path.exists(proofread_srt_path):
+                logger.info(f"發現已完成的 Gemini 校對結果，跳過校對: {proofread_srt_path}")
                 proofread_status = True
+            else:
+                logger.info("正在进行 Gemini 校對...")
+                lecture_text = load_lecture_text()
+                corrected = proofread_srt(whisper_result["srt"], lecture_text)
+                if corrected:
+                    with open(proofread_srt_path, "w", encoding="utf-8") as f:
+                        f.write(build_srt(corrected))
+                    logger.info(f"Gemini 校對完成: {proofread_srt_path}")
+                    proofread_status = True
         except Exception as e:
             logger.error(f"Gemini 校對失敗 (不影響主流程): {e}")
     else:
@@ -532,67 +560,96 @@ def main():
     try:
         lock_fd = open(lock_file_path, "w")
         fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except getattr(BlockingIOError, '__name__', IOError):
+    except (BlockingIOError, IOError):
         # fcntl.LOCK_NB 在無法取得 lock 時會丟出 BlockingIOError 或 IOError
         print("另一個 auto_youtube_whisper.py 行程正在執行中，本次跳過以避免重複處理。")
         return
 
     logger.info("=" * 60)
     logger.info("YouTube 播放清單自動追蹤腳本啟動")
-    logger.info(f"播放清單: {PLAYLIST_URL}")
     logger.info(f"模式: {'DRY RUN' if args.dry_run else '正常執行'}")
     logger.info("=" * 60)
 
-    # 初始化
-    setup_directories()
-    processed = load_processed_videos()
-    logger.info(f"已處理影片數: {len(processed)}")
-
-    # 取得播放清單影片
-    all_videos = get_playlist_videos()
-    if not all_videos:
-        logger.warning("無法取得播放清單影片或播放清單為空")
+    # 取得啟用的播放清單
+    pm = PlaylistManager(config_file=CONFIG_FILE)
+    enabled_playlists = pm.get_enabled_playlists()
+    
+    if not enabled_playlists:
+        logger.warning("沒有啟用的播放清單，結束執行。")
         return
 
-    # 找出新影片
-    new_videos = find_new_videos(all_videos, processed)
-    if not new_videos:
-        logger.info("沒有需要處理的新影片，結束。")
-        return
+    overall_success = 0
+    overall_fail = 0
 
-    # Dry run 模式
-    if args.dry_run:
-        logger.info("\n[DRY RUN] 將會處理以下影片:")
-        for i, v in enumerate(new_videos, 1):
-            logger.info(f"  {i}. [{v['id']}] {v['title']}")
-        logger.info(f"\n共 {len(new_videos)} 部新影片待處理。")
-        return
+    for pl in enabled_playlists:
+        global PLAYLIST_URL, NAS_OUTPUT_BASE, WHISPER_MODEL
+        PLAYLIST_URL = pl.get("url", "")
+        NAS_OUTPUT_BASE = pl.get("output_dir", "") or config_data.get("nas_output_base", "/mnt/nas/Whisper_auto_rum/T097V")
+        WHISPER_MODEL = pl.get("whisper_model", "large-v3")
+        playlist_name = pl.get("name", "Unknown")
 
-    # 處理新影片
-    success_count = 0
-    fail_count = 0
+        if not PLAYLIST_URL:
+            logger.warning(f"跳過清單 {playlist_name}因為沒有設定 URL")
+            continue
 
-    for video in new_videos:
-        result = process_video(video)
+        logger.info("-" * 60)
+        logger.info(f"處理播放清單: {playlist_name} ({PLAYLIST_URL})")
+        logger.info(f"輸出目錄: {NAS_OUTPUT_BASE}, 模型: {WHISPER_MODEL}")
+        logger.info("-" * 60)
 
-        if result["success"]:
-            # 記錄為已處理
-            processed[video["id"]] = {
-                "title": video["title"],
-                "processed_at": datetime.now().isoformat(),
-                "srt": result.get("srt", ""),
-                "txt": result.get("txt", ""),
-                "proofread": result.get("proofread", False)
-            }
-            save_processed_videos(processed)
-            success_count += 1
-        else:
-            fail_count += 1
-            logger.error(f"處理失敗: {video['title']} - {result.get('error', '未知錯誤')}")
+        # 初始化目錄與讀取狀態
+        setup_directories()
+        processed = load_processed_videos()
+        
+        # 取得播放清單影片
+        all_videos = get_playlist_videos()
+        if not all_videos:
+            logger.warning(f"無法從 {playlist_name} 取得影片資訊。")
+            continue
+
+        # 找出新影片
+        new_videos = find_new_videos(all_videos, processed)
+        if not new_videos:
+            logger.info(f"清單 {playlist_name} 沒有需要處理的新影片。")
+            continue
+
+        # Dry run 模式
+        if args.dry_run:
+            logger.info(f"\n[DRY RUN] {playlist_name} 將會處理以下影片:")
+            for i, v in enumerate(new_videos, 1):
+                logger.info(f"  {i}. [{v['id']}] {v['title']}")
+            continue
+
+        # 處理新影片
+        success_count = 0
+        fail_count = 0
+
+        for video in new_videos:
+            result = process_video(video)
+
+            if result["success"]:
+                # 記錄為已處理 (含 playlist_id 供 Dashboard 分群)
+                processed[video["id"]] = {
+                    "title": video["title"],
+                    "processed_at": datetime.now().isoformat(),
+                    "srt": result.get("srt", ""),
+                    "txt": result.get("txt", ""),
+                    "proofread": result.get("proofread", False),
+                    "playlist_id": pl.get("id", ""),
+                }
+                save_processed_videos(processed)
+                success_count += 1
+            else:
+                fail_count += 1
+                logger.error(f"處理失敗: {video['title']} - {result.get('error', '未知錯誤')}")
+        
+        overall_success += success_count
+        overall_fail += fail_count
+        logger.info(f"清單 {playlist_name} 執行完畢 (成功: {success_count}, 失敗: {fail_count})")
 
     # 總結
     logger.info("=" * 60)
-    logger.info(f"執行完成 - 成功: {success_count}, 失敗: {fail_count}")
+    logger.info(f"全部執行完成 - 總成功: {overall_success}, 總失敗: {overall_fail}")
     logger.info("=" * 60)
 
 
