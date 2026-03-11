@@ -19,12 +19,32 @@ import smtplib
 import logging
 import argparse
 import glob
+import threading
 from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
-import fcntl
+import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor
+from gpu_lock import acquire_gpu_lock, release_gpu_lock
+
+# 并发控制：各階段信號量 (Semaphores)
+# 限制 GPU 同時存取數 (RTX 5070 Ti 16GB, large-v3 建議為 1)
+gpu_semaphore = threading.Semaphore(1)
+# 限制 Gemini API 同時請求數 (避免 Rate Limit)
+api_semaphore = threading.Semaphore(2)
+# 限制同時下載數 (避免網路頻寬佔盡)
+dl_semaphore = threading.Semaphore(3)
+# 進度檔存取鎖，確保多執行緒寫入正確
+state_lock = threading.Lock()
+
+# faster-whisper (CTranslate2 加速，比 openai-whisper CLI 快約 4x)
+try:
+    from faster_whisper import WhisperModel as FasterWhisperModel
+    FASTER_WHISPER_AVAILABLE = True
+except ImportError:
+    FASTER_WHISPER_AVAILABLE = False
 
 # 匯入校對模組
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -58,8 +78,9 @@ NAS_OUTPUT_BASE = config_data.get("nas_output_base", "/mnt/nas/Whisper_auto_rum/
 
 STATE_FILE = os.path.join(BASE_DIR, "processed_videos.json")
 
-# yt-dlp 設定
-YTDLP_BIN = "/usr/local/bin/yt-dlp"
+# yt-dlp 設定：優先使用 venv 內的最新版本，避免系統版本過舊問題
+_venv_ytdlp = os.path.join(BASE_DIR, "venv", "bin", "yt-dlp")
+YTDLP_BIN = _venv_ytdlp if os.path.exists(_venv_ytdlp) else "/usr/local/bin/yt-dlp"
 COOKIES_FILE = os.path.join(BASE_DIR, "cookies.txt")
 
 # Whisper 設定
@@ -82,13 +103,11 @@ else:
 # ==========================================
 
 # 設定日誌
-LOG_FILE = os.path.join(BASE_DIR, "auto_youtube_whisper.log")
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler(LOG_FILE, encoding="utf-8"),
-        logging.StreamHandler(),
+        logging.StreamHandler(sys.stdout),
     ],
     force=True,  # Ensure handlers are applied even if root logger was pre-configured
 )
@@ -99,8 +118,30 @@ def setup_directories():
     """建立所需目錄"""
     os.makedirs(NAS_OUTPUT_BASE, exist_ok=True)
 
+# ===== 語言代碼對應表 (供 faster-whisper 使用) =====
+LANGUAGE_MAP = {
+    "chinese": "zh",
+    "english": "en",
+    "japanese": "ja",
+    "korean": "ko",
+    "french": "fr",
+    "spanish": "es",
+    "german": "de",
+    "burmese": "my",
+    "taiwanese": "zh", # 臺灣話對應到中文，讓 Whisper 理解為中文語系
+}
 
-def get_episode_dir(title):
+def get_whisper_lang_code(lang_str):
+    """將常見語言名稱轉換為 faster-whisper (ISO-639-1) 接受的代碼"""
+    if not lang_str:
+        return None
+    lang = str(lang_str).strip().lower()
+    if lang == "auto" or lang == "":
+        return None
+    return LANGUAGE_MAP.get(lang, lang_str)
+
+
+def get_episode_dir(title, prefix="T097V"):
     """從影片標題提取集數，建立對應資料夾路徑
     例如: '佛教公案選集 簡豐文居士 011' -> '/mnt/nas/Whisper_auto_rum/T097V/T097V011'
     """
@@ -112,7 +153,7 @@ def get_episode_dir(title):
         # 無法提取集數，使用全標題
         episode_num = title.strip().replace(' ', '_')
 
-    episode_dir = os.path.join(NAS_OUTPUT_BASE, f"T097V{episode_num}")
+    episode_dir = os.path.join(NAS_OUTPUT_BASE, f"{prefix}{episode_num}")
     os.makedirs(episode_dir, exist_ok=True)
     logger.info(f"輸出目錄: {episode_dir}")
     return episode_dir
@@ -187,15 +228,27 @@ def get_playlist_videos():
     return videos
 
 
-def check_video_files_exist(title, video_id):
-    """檢查預期的輸出檔案是否已經存在"""
+def _build_doc_prefix(safe_title: str, video_id: str) -> str:
+    """Build document prefix for docx filenames. Shared by check_video_files_exist and process_video."""
+    title_part = f"{safe_title}__{video_id}".split('__')[0]
+    match = re.search(r'佛教公案選集\s*簡豐文居士\s*(\d+)', title_part)
+    if match:
+        ep_num = match.group(1)
+        return f"佛教公案選集{ep_num}_簡豐文居士"
+    return title_part.replace(" ", "_")[:25]
+
+
+def check_video_files_exist(title, video_id, prefix="T097V", output_base=None):
+    """檢查預期的輸出檔案是否已經存在 (完整的 Pipeline 產出，包含報表)"""
+    if output_base is None:
+        output_base = NAS_OUTPUT_BASE
     # 取得預期目錄
     match = re.search(r'(\d+)\s*$', title)
     if match:
         episode_num = str(int(match.group(1))).zfill(3)
     else:
         episode_num = title.strip().replace(' ', '_')
-    episode_dir = os.path.join(NAS_OUTPUT_BASE, f"T097V{episode_num}")
+    episode_dir = os.path.join(output_base, f"{prefix}{episode_num}")
     
     # 取得安全檔名
     safe_title = "".join(
@@ -204,37 +257,75 @@ def check_video_files_exist(title, video_id):
     if not safe_title:
         safe_title = video_id
         
-    expected_txt = os.path.join(episode_dir, f"{safe_title}__{video_id}.txt")
-    expected_srt = os.path.join(episode_dir, f"{safe_title}__{video_id}.srt")
-    expected_proofread = os.path.join(episode_dir, f"{safe_title}__{video_id}_proofread.srt")
+    import glob
+    existing_txts = glob.glob(os.path.join(episode_dir, "*.txt"))
+    existing_srts = [f for f in glob.glob(os.path.join(episode_dir, "*.srt")) if not f.endswith("_proofread.srt")]
+    expected_proofreads = glob.glob(os.path.join(episode_dir, "*_proofread.srt"))
     
-    # 向後相容：舊版純檔名 (例如 T097V001.txt)
-    old_txt = os.path.join(episode_dir, f"T097V{episode_num}.txt")
-    old_srt = os.path.join(episode_dir, f"T097V{episode_num}.srt")
-    
-    # 強力標準：必須同時完成 Whisper (txt) 與 Gemini 校對 (proofread.srt)
-    # 或者存在舊版手動完成的 srt 與 txt
-    if (os.path.exists(expected_proofread) and os.path.exists(expected_txt)) or \
-       (os.path.exists(old_srt) and os.path.exists(old_txt)):
-        return True
-    return False
+    # 報表路徑 (use shared helper to guarantee naming consistency)
+    doc_prefix = _build_doc_prefix(safe_title, video_id)
+        
+    expected_xlsx = os.path.join(episode_dir, f"{safe_title}__{video_id}.xlsx")
+    expected_docx_student = os.path.join(episode_dir, f"{doc_prefix}給學員校對.docx")
+    expected_docx_ai = os.path.join(episode_dir, f"{doc_prefix}校對文本.docx")
 
-def find_new_videos(all_videos, processed):
+    # 預期的舊檔名 (Legacy) -> 也就是 "T097V001" 類似的前綴
+    legacy_base = f"{prefix}{episode_num}"
+    legacy_xlsx = os.path.join(episode_dir, f"{legacy_base}.xlsx")
+    legacy_docx_student = os.path.join(episode_dir, f"{legacy_base}給學員校對.docx")
+    legacy_docx_ai = os.path.join(episode_dir, f"{legacy_base}校對文本.docx")
+
+    # 檢查是否具有辨識結果
+    has_whisper = bool(existing_txts and existing_srts)
+    
+    if not has_whisper:
+        return False
+        
+    # 只要符合新檔名或舊檔名任一即可
+    has_xlsx = os.path.exists(expected_xlsx) or os.path.exists(legacy_xlsx)
+    has_docx_student = os.path.exists(expected_docx_student) or os.path.exists(legacy_docx_student)
+    has_docx_ai = os.path.exists(expected_docx_ai) or os.path.exists(legacy_docx_ai)
+
+    # 如果具有 Whisper 結果，且不要求有報表與校對，或者具有所有要求的檔案
+    # 目前我們希望檢查「所有完整流程檔案」，包含校對與三份報表
+    has_proofread = bool(expected_proofreads) and has_xlsx and has_docx_student and has_docx_ai
+                    
+    # 但如果 PROOFREAD 根本沒開，有 Whisper 就夠了 (後續會 skip proofread)
+    if not PROOFREAD_AVAILABLE:
+        return True
+        
+    return has_proofread
+
+def find_new_videos(all_videos, processed, playlist_id="", prefix="T097V", output_base=None):
     """找出尚未處理的新影片，並加上雙重防呆：檢查實體檔案是否存在"""
     new_videos = []
     missing_in_json_but_done = []
     
-    for v in all_videos:
+    # Sort videos sequentially based on number in title to ensure we start from the oldest
+    def extract_number(title):
+        match = re.search(r'(\d+)\s*$', title)
+        return int(match.group(1)) if match else 0
+        
+    sorted_videos = sorted(all_videos, key=lambda x: extract_number(x["title"]))
+    
+    for v in sorted_videos:
         video_id = v["id"]
         title = v["title"]
         
-        # 1. 檢查 JSON 狀態檔
+        # 檢查 NAS 目錄是否有完整的實體檔案存在 (包含 Whisper、校對、報表)
+        files_complete = check_video_files_exist(title, video_id, prefix=prefix, output_base=output_base)
+        
         if video_id in processed:
-            continue
-            
-        # 2. 檢查 NAS 目錄是否有實體檔案存在
-        if check_video_files_exist(title, video_id):
-            logger.info(f"警告: [{video_id}] {title} 檔案已存在，但未記錄在進度檔中，強制跳過並補回。")
+            if files_complete:
+                continue # JSON 有紀錄且檔案完整，安全跳過
+            else:
+                logger.info(f"發現 [{video_id}] {title} 在記錄中但實體檔案(或報表)不完整，排入補齊流程。")
+                new_videos.append(v)
+                continue
+                
+        # JSON 沒有紀錄，但檔案居然完整存在？
+        if files_complete:
+            logger.info(f"警告: [{video_id}] {title} 檔案已完整存在，但未記錄在進度檔中，強制跳過並補回。")
             missing_in_json_but_done.append(v)
             continue
             
@@ -247,7 +338,8 @@ def find_new_videos(all_videos, processed):
                 "title": v["title"],
                 "processed_at": datetime.now().isoformat() + "_recovered",
                 "srt": "recovered from disk",
-                "txt": "recovered from disk"
+                "txt": "recovered from disk",
+                "playlist_id": playlist_id
             }
         save_processed_videos(processed)
 
@@ -299,7 +391,8 @@ def download_audio(video, episode_dir):
     ]
 
     try:
-        subprocess.run(cmd, check=True, timeout=600)
+        with dl_semaphore:
+            subprocess.run(cmd, check=True, timeout=600)
     except subprocess.TimeoutExpired:
         logger.error(f"下載逾時 (600秒): {title}")
         return None
@@ -325,58 +418,80 @@ def download_audio(video, episode_dir):
         return None
 
 
-def run_whisper(audio_path, episode_dir):
-    """使用 Whisper large-v2 進行語音辨識"""
+# 行程層級模型快取（同一次執行多集時只載入一次）
+_whisper_model_cache: dict = {}
+
+
+def _get_whisper_model(model_name: str) -> "FasterWhisperModel":
+    """取得（或建立）快取的 faster-whisper WhisperModel 實例"""
+    if model_name not in _whisper_model_cache:
+        logger.info(f"載入 faster-whisper 模型: {model_name} (float16, CUDA)")
+        _whisper_model_cache[model_name] = FasterWhisperModel(
+            model_name,
+            device="cuda",
+            compute_type="float16",  # RTX 5070 Ti 支援 float16，精度佳
+        )
+    return _whisper_model_cache[model_name]
+
+
+def _write_srt(segments, path: str):
+    """將 faster-whisper segments 列表寫成標準 SRT 格式"""
+    def _fmt_ts(t: float) -> str:
+        h, rem = divmod(int(t), 3600)
+        m, s = divmod(rem, 60)
+        ms = int((t - int(t)) * 1000)
+        return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
+
+    with open(path, "w", encoding="utf-8") as f:
+        for i, seg in enumerate(segments, 1):
+            f.write(f"{i}\n{_fmt_ts(seg.start)} --> {_fmt_ts(seg.end)}\n{seg.text.strip()}\n\n")
+
+
+def run_whisper(audio_path, episode_dir, whisper_model, whisper_lang, whisper_prompt):
+    """使用 faster-whisper Python API 進行語音辨識（比 CLI 快約 4x，VRAM 省約 50%）"""
     basename = os.path.splitext(os.path.basename(audio_path))[0]
-    
-    # 檢查是否已經有辨識結果
     srt_path = os.path.join(episode_dir, f"{basename}.srt")
     txt_path = os.path.join(episode_dir, f"{basename}.txt")
+
+    # 已有辨識結果則跳過
     if os.path.exists(srt_path) and os.path.exists(txt_path):
-        logger.info(f"發現已完成的 Whisper 辨識結果，跳過辨識: {srt_path}")
+        logger.info(f"發現已完成的辨識結果，跳過: {srt_path}")
         return {"srt": srt_path, "txt": txt_path, "basename": basename}
 
-    logger.info(f"正在執行 Whisper 辨識: {basename}")
+    if not FASTER_WHISPER_AVAILABLE:
+        logger.error("faster-whisper 未安裝，請執行: pip install faster-whisper")
+        return None
 
-    cmd = [
-        WHISPER_BIN, audio_path,
-        "--model", WHISPER_MODEL,
-        "--language", WHISPER_LANG,
-        "--initial_prompt", WHISPER_PROMPT,
-        "--output_dir", episode_dir,
-        "--output_format", "all",   # 輸出 txt, srt, vtt, json, tsv
-    ]
-
+    logger.info(f"正在執行 faster-whisper 辨識: {basename}")
     try:
-        # Redirect whisper stdout/stderr to log file to keep cron log clean
-        with open(LOG_FILE, "a", encoding="utf-8") as log_fh:
-            subprocess.run(cmd, check=True, timeout=7200, stdout=log_fh, stderr=log_fh)
-    except subprocess.TimeoutExpired:
-        logger.error(f"Whisper 辨識逾時 (7200秒): {basename}")
-        return None
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Whisper 辨識失敗: {e}")
+        with gpu_semaphore:
+            model = _get_whisper_model(whisper_model)
+            lang_code = get_whisper_lang_code(whisper_lang)
+            logger.info(f"使用模型: {whisper_model}, 語言: {lang_code if lang_code else 'Auto'}, Prompt: {whisper_prompt}")
+            
+            segments_gen, info = model.transcribe(
+                audio_path,
+                language=lang_code,
+                initial_prompt=whisper_prompt,
+                vad_filter=True,   # 過濾靜音段，減少幻覺
+                beam_size=5,
+            )
+            # 將 generator 轉為 list（才能重複使用）
+            segments = list(segments_gen)
+        logger.info(f"辨識完成，共 {len(segments)} 段，語言: {info.language} (機率: {info.language_probability:.2f})")
+    except Exception as e:
+        logger.error(f"faster-whisper 辨識失敗: {e}")
         return None
 
-    # 檢查輸出檔案
-    srt_path = os.path.join(episode_dir, f"{basename}.srt")
-    txt_path = os.path.join(episode_dir, f"{basename}.txt")
+    # 輸出 SRT
+    _write_srt(segments, srt_path)
+    # 輸出 TXT（純文字）
+    with open(txt_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(seg.text.strip() for seg in segments))
 
-    if os.path.exists(srt_path) and os.path.exists(txt_path):
-        logger.info(f"辨識完成: {srt_path}")
-        return {"srt": srt_path, "txt": txt_path, "basename": basename}
-    else:
-        logger.error(f"辨識完成但找不到輸出檔案")
-        # 嘗試找到任何輸出
-        found_srt = glob.glob(os.path.join(episode_dir, f"{basename}.srt"))
-        found_txt = glob.glob(os.path.join(episode_dir, f"{basename}.txt"))
-        if found_srt or found_txt:
-            return {
-                "srt": found_srt[0] if found_srt else None,
-                "txt": found_txt[0] if found_txt else None,
-                "basename": basename,
-            }
-        return None
+    logger.info(f"輸出 SRT: {srt_path}")
+    logger.info(f"輸出 TXT: {txt_path}")
+    return {"srt": srt_path, "txt": txt_path, "basename": basename}
 
 
 def send_email(subject, body, attachment_paths=None):
@@ -423,25 +538,66 @@ def send_email(subject, body, attachment_paths=None):
         return False
 
 
-def process_video(video):
+def process_video(video, pl_config):
     """處理單一影片: 下載 -> Whisper 辨識 -> Email 通知"""
     video_id = video["id"]
     title = video["title"]
+    actually_did_work = False  # Track whether we did real processing (not just skipped)
 
     logger.info(f"{'='*60}")
     logger.info(f"開始處理: [{video_id}] {title}")
     logger.info(f"{'='*60}")
 
     # 0. 建立該集的輸出資料夾 (例: /mnt/nas/Whisper_auto_rum/T097V/T097V11)
-    episode_dir = get_episode_dir(title)
+    prefix = pl_config.get("folder_prefix", "T097V")
+    episode_dir = get_episode_dir(title, prefix=prefix)
 
     # 1. 下載音訊到該集資料夾
-    audio_path = download_audio(video, episode_dir)
+    # 獲取安全文件名以檢查
+    safe_title = "".join(
+        c if c.isalnum() or c in (" ", "-", "_") else "_" for c in title
+    ).strip()
+    if not safe_title: safe_title = video_id
+    
+    import glob
+    existing_audios = glob.glob(os.path.join(episode_dir, "*.wav")) + glob.glob(os.path.join(episode_dir, "*.mp4"))
+    
+    if existing_audios:
+        logger.info(f"發現音訊檔案已存在，跳過下載: {existing_audios[0]}")
+        audio_path = existing_audios[0]
+    else:
+        if not PLAYLIST_URL:
+            logger.error(f"找不到本地音訊檔案，且缺乏播放清單 URL 可供下載: {title}")
+            return {"success": False, "error": "缺乏音訊來源，無法下載"}
+        audio_path = download_audio(video, episode_dir)
+        actually_did_work = True
+        
     if not audio_path:
         return {"success": False, "error": "下載失敗"}
 
+    # 取出各清單專屬的辨識設定
+    whisper_model_pl = pl_config.get("whisper_model", "large-v3")
+    whisper_lang_pl = pl_config.get("whisper_lang", "auto")
+    whisper_prompt_pl = pl_config.get("whisper_prompt", "")
+    proofread_prompt_pl = pl_config.get("proofread_prompt", "")
+    lecture_pdf_pl = pl_config.get("lecture_pdf", "")
+
     # 2. Whisper 辨識，輸出到該集資料夾
-    whisper_result = run_whisper(audio_path, episode_dir)
+    existing_txts = glob.glob(os.path.join(episode_dir, "*.txt"))
+    existing_srts = [f for f in glob.glob(os.path.join(episode_dir, "*.srt")) if not f.endswith("_proofread.srt")]
+    
+    if existing_txts and existing_srts:
+        logger.info(f"發現 Whisper 辨識結果已存在，跳過轉錄: {existing_txts[0]}")
+        whisper_result = {"txt": existing_txts[0], "srt": existing_srts[0], "success": True}
+    else:
+        whisper_result = run_whisper(
+            audio_path, 
+            episode_dir, 
+            whisper_model=whisper_model_pl, 
+            whisper_lang=whisper_lang_pl, 
+            whisper_prompt=whisper_prompt_pl
+        )
+        actually_did_work = True
     if not whisper_result:
         return {"success": False, "error": "Whisper 辨識失敗"}
 
@@ -459,32 +615,67 @@ def process_video(video):
                 proofread_status = True
             else:
                 logger.info("正在进行 Gemini 校對...")
-                lecture_text = load_lecture_text()
-                corrected = proofread_srt(whisper_result["srt"], lecture_text)
+                with api_semaphore:
+                    lecture_text = load_lecture_text(pdf_path=lecture_pdf_pl)
+                    # Pass proofread_prompt from playlist config down to the proofread engine
+                    corrected = proofread_srt(whisper_result["srt"], lecture_text, custom_prompt=proofread_prompt_pl)
                 if corrected:
                     with open(proofread_srt_path, "w", encoding="utf-8") as f:
                         f.write(build_srt(corrected))
                     logger.info(f"Gemini 校對完成: {proofread_srt_path}")
                     proofread_status = True
+                    actually_did_work = True
         except Exception as e:
             logger.error(f"Gemini 校對失敗 (不影響主流程): {e}")
     else:
         logger.warning("校對模組未載入，跳過校對步驟")
 
-    # 3.5 產生報表 (Excel, Docx)
-    excel_path, docx_student, docx_ai = None, None, None
+    # 3.5 產生報表 (Excel, Docx) — use shared helper for naming consistency
+    doc_prefix = _build_doc_prefix(safe_title, video_id)
+        
+    expected_xlsx = os.path.join(episode_dir, f"{safe_title}__{video_id}.xlsx")
+    expected_docx_student = os.path.join(episode_dir, f"{doc_prefix}給學員校對.docx")
+    expected_docx_ai = os.path.join(episode_dir, f"{doc_prefix}校對文本.docx")
+
+    # 預期的舊檔名 (Legacy) -> 也就是 "T097V001" 類似的前綴
+    match = re.search(r'(\d+)\s*$', title)
+    if match:
+        episode_num = str(int(match.group(1))).zfill(3)
+    else:
+        episode_num = title.strip().replace(' ', '_')
+    legacy_base = f"{prefix}{episode_num}"
+    
+    legacy_xlsx = os.path.join(episode_dir, f"{legacy_base}.xlsx")
+    legacy_docx_student = os.path.join(episode_dir, f"{legacy_base}給學員校對.docx")
+    legacy_docx_ai = os.path.join(episode_dir, f"{legacy_base}校對文本.docx")
+    
+    has_xlsx = os.path.exists(expected_xlsx) or os.path.exists(legacy_xlsx)
+    has_docx_student = os.path.exists(expected_docx_student) or os.path.exists(legacy_docx_student)
+    has_docx_ai = os.path.exists(expected_docx_ai) or os.path.exists(legacy_docx_ai)
+
+    reports_exist = has_xlsx and has_docx_student and has_docx_ai
+
+    # 根據存在的檔案來設定路徑，供後續發送 Email 使用
+    excel_path = expected_xlsx if os.path.exists(expected_xlsx) else legacy_xlsx
+    docx_student = expected_docx_student if os.path.exists(expected_docx_student) else legacy_docx_student
+    docx_ai = expected_docx_ai if os.path.exists(expected_docx_ai) else legacy_docx_ai
+
     if whisper_result.get("srt"):
-        try:
-            import auto_postprocess
-            logger.info("正在產生 Excel 與 Docx 報表...")
-            base_name = os.path.splitext(os.path.basename(whisper_result["srt"]))[0]
-            res = auto_postprocess.generate_excel_and_docx(episode_dir, base_name)
-            if res:
-                excel_path, docx_student, docx_ai = res
-        except ImportError:
-            logger.warning("找不到 auto_postprocess 模組，跳過報表生成")
-        except Exception as e:
-            logger.error(f"報表生成失敗: {e}")
+        if reports_exist:
+            logger.info("發現報表 (Excel, Docx) 已存在，跳過生成")
+        else:
+            try:
+                import auto_postprocess
+                logger.info("正在產生 Excel 與 Docx 報表...")
+                base_name = os.path.splitext(os.path.basename(whisper_result["srt"]))[0]
+                res = auto_postprocess.generate_excel_and_docx(episode_dir, base_name)
+                if res:
+                    excel_path, docx_student, docx_ai = res
+                    actually_did_work = True
+            except ImportError:
+                logger.warning("找不到 auto_postprocess 模組，跳過報表生成")
+            except Exception as e:
+                logger.error(f"報表生成失敗: {e}")
 
     # 4. 讀取辨識結果摘要
     txt_preview = ""
@@ -531,7 +722,10 @@ def process_video(video):
     if docx_ai and os.path.exists(docx_ai):
         attachments.append(docx_ai)
 
-    send_email(subject, body, attachments)
+    if actually_did_work:
+        send_email(subject, body, attachments)
+    else:
+        logger.info(f"所有步驟均為跳過（已存在），不重複發送 Email: {title}")
 
     # WAV 音訊檔保留在該集資料夾中，不刪除
     logger.info(f"處理完成: {title} -> {episode_dir}")
@@ -555,102 +749,140 @@ def main():
     )
     args = parser.parse_args()
 
-    # 確保不會有多個 Cron Job 同時執行造成重複處理
-    lock_file_path = os.path.join(BASE_DIR, "auto_youtube_whisper.lock")
+    # 確保不會有多個行程同時使用 GPU（與 auto_meeting_process.py 共用鎖）
+    # Dry run 模式不需要 GPU 鎖
+    lock_fd = None
+    if not args.dry_run:
+        lock_fd = acquire_gpu_lock()
+        if lock_fd is None:
+            print("GPU 被其他行程佔用中（可能是月會聽打或另一個 Whisper 行程），本次跳過。")
+            return
+
     try:
-        lock_fd = open(lock_file_path, "w")
-        fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except (BlockingIOError, IOError):
-        # fcntl.LOCK_NB 在無法取得 lock 時會丟出 BlockingIOError 或 IOError
-        print("另一個 auto_youtube_whisper.py 行程正在執行中，本次跳過以避免重複處理。")
-        return
+        logger.info("=" * 60)
+        logger.info("YouTube 播放清單自動追蹤腳本啟動")
+        logger.info(f"模式: {'DRY RUN' if args.dry_run else '正常執行'}")
+        logger.info("=" * 60)
 
-    logger.info("=" * 60)
-    logger.info("YouTube 播放清單自動追蹤腳本啟動")
-    logger.info(f"模式: {'DRY RUN' if args.dry_run else '正常執行'}")
-    logger.info("=" * 60)
-
-    # 取得啟用的播放清單
-    pm = PlaylistManager(config_file=CONFIG_FILE)
-    enabled_playlists = pm.get_enabled_playlists()
-    
-    if not enabled_playlists:
-        logger.warning("沒有啟用的播放清單，結束執行。")
-        return
-
-    overall_success = 0
-    overall_fail = 0
-
-    for pl in enabled_playlists:
-        global PLAYLIST_URL, NAS_OUTPUT_BASE, WHISPER_MODEL
-        PLAYLIST_URL = pl.get("url", "")
-        NAS_OUTPUT_BASE = pl.get("output_dir", "") or config_data.get("nas_output_base", "/mnt/nas/Whisper_auto_rum/T097V")
-        WHISPER_MODEL = pl.get("whisper_model", "large-v3")
-        playlist_name = pl.get("name", "Unknown")
-
-        if not PLAYLIST_URL:
-            logger.warning(f"跳過清單 {playlist_name}因為沒有設定 URL")
-            continue
-
-        logger.info("-" * 60)
-        logger.info(f"處理播放清單: {playlist_name} ({PLAYLIST_URL})")
-        logger.info(f"輸出目錄: {NAS_OUTPUT_BASE}, 模型: {WHISPER_MODEL}")
-        logger.info("-" * 60)
-
-        # 初始化目錄與讀取狀態
-        setup_directories()
-        processed = load_processed_videos()
+        # 取得啟用的播放清單 (只取狀態為 running 的清單)
+        pm = PlaylistManager(config_file=CONFIG_FILE)
+        enabled_playlists = pm.get_runnable_playlists()
         
-        # 取得播放清單影片
-        all_videos = get_playlist_videos()
-        if not all_videos:
-            logger.warning(f"無法從 {playlist_name} 取得影片資訊。")
-            continue
+        if not enabled_playlists:
+            logger.warning("沒有需執行的播放清單 (可能全部暫停中或皆未啟用)，結束執行。")
+            return
 
-        # 找出新影片
-        new_videos = find_new_videos(all_videos, processed)
-        if not new_videos:
-            logger.info(f"清單 {playlist_name} 沒有需要處理的新影片。")
-            continue
+        overall_success = 0
+        overall_fail = 0
 
-        # Dry run 模式
-        if args.dry_run:
-            logger.info(f"\n[DRY RUN] {playlist_name} 將會處理以下影片:")
-            for i, v in enumerate(new_videos, 1):
-                logger.info(f"  {i}. [{v['id']}] {v['title']}")
-            continue
+        for pl in enabled_playlists:
+            global PLAYLIST_URL, NAS_OUTPUT_BASE
+            PLAYLIST_URL = pl.get("url", "")
+            NAS_OUTPUT_BASE = pl.get("output_dir", "") or config_data.get("nas_output_base", "/mnt/nas/Whisper_auto_rum/T097V")
+            playlist_name = pl.get("name", "Unknown")
 
-        # 處理新影片
-        success_count = 0
-        fail_count = 0
-
-        for video in new_videos:
-            result = process_video(video)
-
-            if result["success"]:
-                # 記錄為已處理 (含 playlist_id 供 Dashboard 分群)
-                processed[video["id"]] = {
-                    "title": video["title"],
-                    "processed_at": datetime.now().isoformat(),
-                    "srt": result.get("srt", ""),
-                    "txt": result.get("txt", ""),
-                    "proofread": result.get("proofread", False),
-                    "playlist_id": pl.get("id", ""),
-                }
-                save_processed_videos(processed)
-                success_count += 1
+            # 初始化目錄與讀取狀態
+            setup_directories()
+            processed = load_processed_videos()
+            
+            # 取得播放清單影片
+            if not PLAYLIST_URL:
+                logger.info(f"清單 {playlist_name} 沒有 URL，從本地記錄載入虛擬清單")
+                all_videos = []
+                for vid, info in processed.items():
+                    if pl["id"] == "__legacy__" and (not info.get("playlist_id") or info.get("playlist_id") == "__legacy__"):
+                        all_videos.append({"id": vid, "title": info.get("title", f"Unknown_{vid}"), "url": ""})
+                    elif info.get("playlist_id") == pl["id"]:
+                        all_videos.append({"id": vid, "title": info.get("title", f"Unknown_{vid}"), "url": ""})
             else:
-                fail_count += 1
-                logger.error(f"處理失敗: {video['title']} - {result.get('error', '未知錯誤')}")
-        
-        overall_success += success_count
-        overall_fail += fail_count
-        logger.info(f"清單 {playlist_name} 執行完畢 (成功: {success_count}, 失敗: {fail_count})")
+                all_videos = get_playlist_videos()
 
-    # 總結
-    logger.info("=" * 60)
-    logger.info(f"全部執行完成 - 總成功: {overall_success}, 總失敗: {overall_fail}")
-    logger.info("=" * 60)
+            if not all_videos:
+                logger.warning(f"無法從 {playlist_name} 取得影片資訊。")
+                continue
+
+            # 找出新影片
+            prefix = pl.get("folder_prefix", "T097V")
+            new_videos = find_new_videos(all_videos, processed, pl.get("id", ""), prefix=prefix, output_base=NAS_OUTPUT_BASE)
+            if not new_videos:
+                logger.info(f"清單 {playlist_name} 沒有需要處理的新影片。")
+                # Update processed_count for UI completeness
+                if "processed_count" not in pl or pl["processed_count"] != len(all_videos):
+                    pm.update_playlist(pl["id"], {"processed_count": len(all_videos), "total_videos": len(all_videos)})
+                continue
+                
+            # 套用 batch_size 限制進行 Round-Robin 調度
+            batch_size = pl.get("batch_size", 5)
+            new_videos_batch = new_videos[:batch_size]
+            
+            logger.info(f"清單 {playlist_name} 共有 {len(new_videos)} 期待處理，本輪將處理前 {len(new_videos_batch)} 集")
+            
+            # 預先更新總數
+            pm.update_playlist(pl["id"], {"total_videos": len(all_videos)})
+
+            # Dry run 模式
+            if args.dry_run:
+                logger.info(f"\n[DRY RUN] {playlist_name} 將會處理以下影片:")
+                for i, v in enumerate(new_videos_batch, 1):
+                    logger.info(f"  {i}. [{v['id']}] {v['title']}")
+                continue
+
+            # 處理新影片
+            success_count = 0
+            fail_count = 0
+
+            # 使用 ThreadPoolExecutor 並行處理多部影片
+            # 各階段資源瓶頸 (GPU, API, DL) 已透過全域 Semaphore 控制
+            max_workers = min(len(new_videos_batch), batch_size)
+            logger.info(f"啟動 {max_workers} 個工作執行緒並行處理...")
+            
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                # 提交所有任務
+                future_to_video = {executor.submit(process_video, video, pl): video for video in new_videos_batch}
+                
+                for future in concurrent.futures.as_completed(future_to_video):
+                    video = future_to_video[future]
+                    try:
+                        result = future.result()
+                        if result["success"]:
+                            success_count += 1
+                            # 執行緒安全地更新狀態
+                            with state_lock:
+                                # 重新讀取，以免其他執行緒剛存過
+                                current_processed = load_processed_videos()
+                                current_processed[video["id"]] = {
+                                    "title": video["title"],
+                                    "processed_at": datetime.now().isoformat(),
+                                    "srt": result.get("srt", ""),
+                                    "txt": result.get("txt", ""),
+                                    "proofread": result.get("proofread", False),
+                                    "playlist_id": pl.get("id", ""),
+                                }
+                                save_processed_videos(current_processed)
+                        else:
+                            fail_count += 1
+                            logger.error(f"處理失敗: {video['title']} - {result.get('error', '未知錯誤')}")
+                    except Exception as exc:
+                        fail_count += 1
+                        logger.error(f"影片處理過程中發生未預期錯誤: {video['title']} - {exc}")
+            
+            overall_success += success_count
+            overall_fail += fail_count
+            logger.info(f"清單 {playlist_name} 執行完畢 (本輪成功: {success_count}, 失敗: {fail_count})")
+            
+            # 更新處理數量
+            pm._config = pm._load_config() # Reload in case of concurrent changes
+            current_processed = len([v for v in load_processed_videos().values() if v.get("playlist_id") == pl["id"]])
+            pm.update_playlist(pl["id"], {"processed_count": current_processed})
+
+        # 總結
+        logger.info("=" * 60)
+        logger.info(f"全部執行完成 - 總成功: {overall_success}, 總失敗: {overall_fail}")
+        logger.info("=" * 60)
+
+    finally:
+        # 不管正常結束、例外或崩潰還原，都確保 GPU 鎖被釋放
+        release_gpu_lock(lock_fd)
 
 
 if __name__ == "__main__":

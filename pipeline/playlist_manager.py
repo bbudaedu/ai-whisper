@@ -1,6 +1,7 @@
 """多播放清單管理器
 ========================
 支援追蹤多個 YouTube 播放清單，每個清單可配置獨立的輸出目錄和 Whisper 模型。
+支援任務排程控制：開始 / 暫停 / 恢復，以及 Round-Robin 批次處理。
 """
 
 import json
@@ -10,6 +11,12 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
+# 每個 playlist 必須包含的欄位及預設值（用於自動遷移）
+PLAYLIST_DEFAULTS = {
+    "processed_count": 0,   # 已處理影片數
+    "folder_prefix": "T097V", # 資料夾前綴 (例如 T097V001)
+}
+
 DEFAULT_CONFIG = {
     "playlists": [
         {
@@ -17,9 +24,7 @@ DEFAULT_CONFIG = {
             "name": "預設播放清單",
             "url": "",
             "output_dir": "",
-            "whisper_model": "large-v3",
-            "enabled": True,
-            "schedule": "daily",
+            **PLAYLIST_DEFAULTS,
         }
     ]
 }
@@ -36,7 +41,22 @@ class PlaylistManager:
         if os.path.exists(self.config_file):
             try:
                 with open(self.config_file, "r", encoding="utf-8") as f:
-                    return json.load(f)
+                    config = json.load(f)
+                # 自動遷移：為舊清單補齊新欄位
+                migrated = False
+                for pl in config.get("playlists", []):
+                    for key, default_val in PLAYLIST_DEFAULTS.items():
+                        if key not in pl:
+                            pl[key] = default_val
+                            migrated = True
+                if migrated:
+                    try:
+                        with open(self.config_file, "w", encoding="utf-8") as f:
+                            json.dump(config, f, ensure_ascii=False, indent=2)
+                        logger.info("已自動遷移播放清單配置（補齊新欄位）")
+                    except Exception:
+                        pass
+                return config
             except Exception as e:
                 logger.error(f"讀取配置失敗: {e}")
         import copy
@@ -74,11 +94,11 @@ class PlaylistManager:
             "name": name,
             "url": url,
             "output_dir": output_dir,
-            "whisper_model": kwargs.get("whisper_model", "large-v3"),
-            "enabled": kwargs.get("enabled", True),
-            "schedule": kwargs.get("schedule", "daily"),
             "added_at": datetime.now().isoformat(),
         }
+        # 從 PLAYLIST_DEFAULTS 取預設，kwargs 可覆蓋
+        for key, default_val in PLAYLIST_DEFAULTS.items():
+            playlist[key] = kwargs.get(key, default_val)
 
         if "playlists" not in self._config:
             self._config["playlists"] = []
@@ -112,6 +132,46 @@ class PlaylistManager:
                 "enabled": p.get("enabled", True),
                 "schedule": p.get("schedule", "daily"),
                 "url": p.get("url", ""),
+                "status": p.get("status", "idle"),
             }
             for p in self.playlists
         ]
+
+    # ── 任務控制 API ──────────────────────────────────────
+
+    def set_status(self, playlist_id, status):
+        """設定清單處理狀態 (idle / running / paused)。"""
+        if status not in ("idle", "running", "paused"):
+            raise ValueError(f"不合法的狀態: {status}")
+        playlist = self.get_playlist_by_id(playlist_id)
+        if playlist:
+            playlist["status"] = status
+            self._save_config()
+            logger.info(f"清單 {playlist_id} 狀態 → {status}")
+            return True
+        return False
+
+    def get_runnable_playlists(self):
+        """取得可執行的清單清單（enabled=True 且 status != paused）。"""
+        return [
+            p for p in self.playlists
+            if p.get("enabled", True) and p.get("status", "idle") != "paused"
+        ]
+
+    def update_playlist(self, playlist_id, updates: dict):
+        """批次更新清單欄位。"""
+        playlist = self.get_playlist_by_id(playlist_id)
+        if not playlist:
+            return False
+        # 只允許更新合法欄位
+        allowed_keys = {
+            "name", "url", "output_dir", "whisper_model", "enabled",
+            "schedule", "whisper_lang", "whisper_prompt", "lecture_pdf",
+            "status", "batch_size", "total_videos", "processed_count",
+            "folder_prefix", "proofread_prompt",
+        }
+        for key, val in updates.items():
+            if key in allowed_keys:
+                playlist[key] = val
+        self._save_config()
+        return True

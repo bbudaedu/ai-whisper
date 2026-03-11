@@ -3,43 +3,7 @@ import {
     ListVideo, CheckCircle, Clock, ChevronDown, ChevronUp,
     Activity, FileText, Zap, CircleDot
 } from 'lucide-react';
-
-interface PlaylistStats {
-    whispered: number;
-    proofread: number;
-    pending: number;
-}
-
-interface VideoInfo {
-    video_id: string;
-    title: string;
-    processed_at: string;
-    proofread: boolean;
-    playlist_id?: string;
-}
-
-interface PlaylistSummary {
-    id: string;
-    name: string;
-    url: string;
-    enabled: boolean;
-    whisper_model: string;
-    stats: PlaylistStats;
-    last_processed_at: string;
-    videos: VideoInfo[];
-}
-
-interface GlobalStats {
-    total_playlists: number;
-    active_playlists: number;
-    total_videos: number;
-    total_proofread: number;
-}
-
-interface DashboardData {
-    playlists: PlaylistSummary[];
-    global_stats: GlobalStats;
-}
+import { DashboardData, PlaylistData, VideoInfo } from '../types';
 
 function formatTime(isoStr: string): string {
     if (!isoStr) return '—';
@@ -53,30 +17,32 @@ function formatTime(isoStr: string): string {
     }
 }
 
-function ProgressBar({ whispered, proofread }: { whispered: number; proofread: number }) {
-    if (whispered === 0) {
+function ProgressBar({ whispered, proofread, total }: { whispered: number; proofread: number; total: number }) {
+    const displayTotal = total > 0 ? total : whispered;
+    if (displayTotal === 0) {
         return (
             <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                 <div className="h-full bg-slate-300 dark:bg-slate-600 rounded-full" style={{ width: '0%' }} />
             </div>
         );
     }
-    const pct = Math.round((proofread / whispered) * 100);
+    const pctWhispered = Math.round((whispered / displayTotal) * 100);
+    const pctProofread = Math.round((proofread / displayTotal) * 100);
     return (
         <div className="space-y-1">
-            <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+            <div className="w-full h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden relative">
                 <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{
-                        width: `${pct}%`,
-                        background: pct === 100
-                            ? 'linear-gradient(90deg, #10B981, #34D399)'
-                            : 'linear-gradient(90deg, #3B82F6, #60A5FA)',
-                    }}
+                    className="h-full rounded-full absolute left-0 top-0 transition-all duration-500"
+                    style={{ width: `${pctWhispered}%`, background: 'linear-gradient(90deg, #3B82F6, #60A5FA)' }}
+                />
+                <div
+                    className="h-full rounded-full absolute left-0 top-0 transition-all duration-500"
+                    style={{ width: `${pctProofread}%`, background: 'linear-gradient(90deg, #10B981, #34D399)' }}
                 />
             </div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">
-                {proofread}/{whispered} 校對完成 ({pct}%)
+            <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 font-mono mt-1">
+                <span>{proofread}/{displayTotal} 校對完成 ({pctProofread}%)</span>
+                <span></span>
             </div>
         </div>
     );
@@ -102,7 +68,7 @@ function KpiCard({ icon: Icon, label, value, accent }: {
 }
 
 function PlaylistCard({ pl, isExpanded, onToggle }: {
-    pl: PlaylistSummary;
+    pl: PlaylistData;
     isExpanded: boolean;
     onToggle: () => void;
 }) {
@@ -117,10 +83,10 @@ function PlaylistCard({ pl, isExpanded, onToggle }: {
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center space-x-3 min-w-0">
                         <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${isLegacy
-                                ? 'bg-slate-100 dark:bg-slate-800 text-slate-500'
-                                : pl.enabled
-                                    ? 'bg-blue-50 dark:bg-blue-500/10 text-[#3B82F6]'
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
+                            ? 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                            : pl.enabled
+                                ? 'bg-blue-50 dark:bg-blue-500/10 text-[#3B82F6]'
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
                             }`}>
                             <ListVideo size={18} />
                         </div>
@@ -134,8 +100,8 @@ function PlaylistCard({ pl, isExpanded, onToggle }: {
                     <div className="flex items-center space-x-2 flex-shrink-0">
                         {!isLegacy && (
                             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${pl.enabled
-                                    ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400'
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                                ? 'bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400'
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
                                 }`}>
                                 {pl.enabled ? '啟用' : '停用'}
                             </span>
@@ -161,7 +127,7 @@ function PlaylistCard({ pl, isExpanded, onToggle }: {
                 </div>
 
                 {/* Progress Bar */}
-                <ProgressBar whispered={pl.stats.whispered} proofread={pl.stats.proofread} />
+                <ProgressBar whispered={pl.stats.whispered} proofread={pl.stats.proofread} total={pl.total_videos} />
 
                 {pl.last_processed_at && (
                     <div className="text-xs text-slate-400 mt-2 flex items-center space-x-1">
@@ -186,7 +152,7 @@ function PlaylistCard({ pl, isExpanded, onToggle }: {
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                 {pl.videos
-                                    .sort((a, b) => {
+                                    .sort((a: VideoInfo, b: VideoInfo) => {
                                         const numA = parseInt((a.title || '').match(/(\d+)\s*$/)?.[1] || '0', 10);
                                         const numB = parseInt((b.title || '').match(/(\d+)\s*$/)?.[1] || '0', 10);
                                         return numA - numB;
@@ -252,6 +218,13 @@ export default function PlaylistDashboard({ data }: { data: DashboardData | null
 
     const { playlists, global_stats } = data;
 
+    const sortedPlaylists = [...playlists].sort((a: PlaylistData, b: PlaylistData) => {
+        // Sort by enabled status (enabled first), then by name
+        if (a.enabled && !b.enabled) return -1;
+        if (!a.enabled && b.enabled) return 1;
+        return a.name.localeCompare(b.name);
+    });
+
     return (
         <div className="space-y-6">
             {/* KPI Summary Row */}
@@ -284,7 +257,7 @@ export default function PlaylistDashboard({ data }: { data: DashboardData | null
 
             {/* Playlist Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {playlists.map((pl) => (
+                {sortedPlaylists.map((pl) => (
                     <PlaylistCard
                         key={pl.id}
                         pl={pl}
@@ -294,7 +267,7 @@ export default function PlaylistDashboard({ data }: { data: DashboardData | null
                 ))}
             </div>
 
-            {playlists.length === 0 && (
+            {sortedPlaylists.length === 0 && (
                 <div className="text-center py-12 text-slate-400">
                     <ListVideo size={40} className="mx-auto mb-3 opacity-40" />
                     <p>尚未新增任何播放清單。請到「系統設定」新增。</p>

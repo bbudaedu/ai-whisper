@@ -48,13 +48,11 @@ CHUNK_SIZE = config_data.get("proofread_chunk_size", 100)  # 預設 100 條
 # ==========================================
 
 # 設定日誌
-LOG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "auto_proofread.log")
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler(LOG_FILE, encoding="utf-8"),
-        logging.StreamHandler(),
+        logging.StreamHandler(sys.stdout),
     ],
 )
 logger = logging.getLogger(__name__)
@@ -81,23 +79,30 @@ def extract_pdf_text(pdf_path):
         return ""
 
 
-def load_lecture_text():
+def load_lecture_text(pdf_path=None):
     """載入講義文字（使用快取避免重複解析 PDF）"""
+    target_pdf = pdf_path if pdf_path else LECTURE_PDF
+    if not target_pdf or not os.path.exists(target_pdf):
+        return ""
+
     # 如果有快取且 PDF 沒更新，直接用快取
-    if os.path.exists(LECTURE_CACHE):
-        cache_mtime = os.path.getmtime(LECTURE_CACHE)
-        pdf_mtime = os.path.getmtime(LECTURE_PDF) if os.path.exists(LECTURE_PDF) else 0
+    cache_name = "lecture_cache_" + os.path.basename(target_pdf) + ".txt"
+    cache_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), cache_name)
+
+    if os.path.exists(cache_path):
+        cache_mtime = os.path.getmtime(cache_path)
+        pdf_mtime = os.path.getmtime(target_pdf) if os.path.exists(target_pdf) else 0
         if cache_mtime > pdf_mtime:
-            logger.info(f"使用講義快取: {LECTURE_CACHE}")
-            with open(LECTURE_CACHE, "r", encoding="utf-8") as f:
+            logger.info(f"使用講義快取: {cache_path}")
+            with open(cache_path, "r", encoding="utf-8") as f:
                 return f.read()
 
     # 重新解析 PDF
-    text = extract_pdf_text(LECTURE_PDF)
+    text = extract_pdf_text(target_pdf)
     if text:
-        with open(LECTURE_CACHE, "w", encoding="utf-8") as f:
+        with open(cache_path, "w", encoding="utf-8") as f:
             f.write(text)
-        logger.info(f"已更新講義快取: {LECTURE_CACHE}")
+        logger.info(f"已更新講義快取: {cache_path}")
     return text
 
 
@@ -140,7 +145,7 @@ def call_api(prompt, max_retries=3):
     return _api_client.call(prompt)
 
 
-def proofread_chunk(chunk_subtitles, lecture_text, chunk_num, total_chunks):
+def proofread_chunk(chunk_subtitles, lecture_text, chunk_num, total_chunks, custom_prompt=None):
     """校對一個字幕批次"""
     logger.info(f"正在校對批次 {chunk_num}/{total_chunks} ({len(chunk_subtitles)} 條字幕)")
 
@@ -161,17 +166,30 @@ def proofread_chunk(chunk_subtitles, lecture_text, chunk_num, total_chunks):
 
 """
 
-    prompt = f"""你是一個佛學大師，精通經律論三藏十二部經典，以下文本是whisper產生的字幕文本，關於佛教公案選集的內容，有很多同音字聽打錯誤，幫我依據我提供的上課講義校對文本，嚴格依照以下規則，直接修正錯誤
-1.這是講座字幕的文本，依照原本的用字遣詞斷句輸出，重複內容不能省略，不然字幕會出錯混亂
-2.不要加標點符號
-3.輸出繁體中文
+    if custom_prompt and custom_prompt.strip():
+        # User defined a custom prompt, replace the placeholders
+        prompt = custom_prompt.replace("{{lecture_section}}", lecture_section)
+        prompt = prompt.replace("{{srt_text}}", srt_text_only)
+    else:
+        # Fallback to hardcoded safe default prompt
+        prompt = f"""你是一個佛學大師，精通經律論三藏十二部經典。
+以下文本是 whisper 產生的雙語講座字幕文本（包含如緬甸語等外語及中文現場翻譯），有很多同音字聽打錯誤。
+幫我依據我提供的上課講義校對文本，嚴格依照以下規則，直接修正錯誤：
+
+1. 這是講座字幕的文本，請分辨說話者是外語還是中文翻譯，依照原本的語言和用字遣詞斷句輸出。
+2. **絕對不要把外文（如緬甸語）翻譯成中文輸出**，如果是外文發音，請保留該國語言或羅馬拼音。
+3. 如果原文是外文，請維持外文；如果是中文翻譯，請輸出繁體中文。
+4. 重複內容不能省略。
+5. 不要加標點符號。
+
 {lecture_section}
+
 以下是需要校對的字幕文本，格式是 [序號] 文字：
 <字幕>
 {srt_text_only}
 </字幕>
 
-請直接輸出校對後的結果，格式完全相同（[序號] 校對後文字），不要有任何說明或額外文字。"""
+請直接輸出校對後的結果，格式完全相同（[序號] 校對後文字），不要有任何說明。"""
 
     result = call_api(prompt)
     if not result:
@@ -197,7 +215,7 @@ def proofread_chunk(chunk_subtitles, lecture_text, chunk_num, total_chunks):
     return corrected_subtitles
 
 
-def proofread_srt(srt_path, lecture_text):
+def proofread_srt(srt_path, lecture_text, custom_prompt=None):
     """對整個 SRT 檔進行分批校對"""
     subtitles = parse_srt(srt_path)
     if not subtitles:
@@ -233,7 +251,7 @@ def proofread_srt(srt_path, lecture_text):
             logger.info(f"跳過已完成的批次 {i}/{total_chunks}")
             continue
 
-        corrected = proofread_chunk(chunk, lecture_text, i, total_chunks)
+        corrected = proofread_chunk(chunk, lecture_text, i, total_chunks, custom_prompt=custom_prompt)
         all_corrected.extend(corrected)
         
         # 儲存進度

@@ -36,7 +36,7 @@ if os.path.exists(CONFIG_FILE):
 # 中轉 API 設定
 API_BASE_URL = config_data.get("api_base_url", "http://192.168.100.201:8045/v1/chat/completions")
 API_KEY = config_data.get("api_key", "sk-8f3999c2452d4124835ffaff469e22af")
-PUNCTUATION_MODEL = config_data.get("proofread_model", "gemini-3-flash")
+PUNCTUATION_MODEL = config_data.get("punctuation_model", "gemini-2.5-flash")
 PUNCTUATION_CHUNK_SIZE = config_data.get("punct_chunk_size", 120)
 
 def simple_autofit_columns(output_path):

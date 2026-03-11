@@ -1,0 +1,1 @@
+{"root":["./src/App.tsx","./src/main.tsx","./src/types.ts","./src/components/LogViewer.tsx","./src/components/PlaylistDashboard.tsx","./src/components/PlaylistTaskManager.tsx","./src/components/SettingsPanel.tsx","./src/components/TaskTracker.tsx"],"version":"5.9.3"}

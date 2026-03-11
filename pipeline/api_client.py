@@ -171,6 +171,7 @@ class ResilientAPIClient:
 
         # 暫停
         logger.info(f"暫停 {self._pause_duration // 60} 分鐘...")
+        # 確保暫停時間內不會繼續執行請求，應由外部控制或在此阻塞
         time.sleep(self._pause_duration)
 
         # 暫停結束，重置計數器給予再一次機會
