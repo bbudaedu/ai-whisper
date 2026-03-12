@@ -76,6 +76,7 @@ function PlaylistCard({ pl, isExpanded, onToggle, onControl, onUpdate, onDelete,
         output_dir: pl.output_dir || '',
         whisper_model: pl.whisper_model || 'large-v2',
         folder_prefix: pl.folder_prefix || 'T097V',
+        track: pl.track !== false,
     });
 
     const [episodes, setEpisodes] = useState<EpisodeStatus[] | null>(null);
@@ -355,17 +356,20 @@ function PlaylistCard({ pl, isExpanded, onToggle, onControl, onUpdate, onDelete,
                                             placeholder="T097V"
                                         />
                                     </div>
-                                    <div className="space-y-1.5">
-                                        <label htmlFor={`batch_size_${pl.id}`} className="text-sm font-medium text-slate-600 dark:text-slate-400">每輪處理集數 (batch)</label>
-                                        <input
-                                            id={`batch_size_${pl.id}`}
-                                            type="number"
-                                            min={1}
-                                            max={50}
-                                            value={editForm.batch_size}
-                                            onChange={e => setEditForm({ ...editForm, batch_size: parseInt(e.target.value) || 5 })}
-                                            className="w-full bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-base focus:ring-2 focus:ring-[#3B82F6] outline-none"
-                                        />
+                                    <div className="space-y-1.5 flex items-center pt-6">
+                                        <label className="flex items-center cursor-pointer space-x-3">
+                                            <div className="relative">
+                                                <input
+                                                    type="checkbox"
+                                                    className="sr-only"
+                                                    checked={editForm.track}
+                                                    onChange={e => setEditForm({ ...editForm, track: e.target.checked })}
+                                                />
+                                                <div className={`block w-10 h-6 rounded-full transition-colors ${editForm.track ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}></div>
+                                                <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${editForm.track ? 'translate-x-4' : ''}`}></div>
+                                            </div>
+                                            <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">啟用自動追蹤</span>
+                                        </label>
                                     </div>
                                 </div>
                             ) : (
@@ -401,6 +405,16 @@ function PlaylistCard({ pl, isExpanded, onToggle, onControl, onUpdate, onDelete,
                                     <div className="bg-white dark:bg-[#161b22] rounded-lg p-3 border border-slate-100 dark:border-slate-800">
                                         <div className="text-xs text-slate-400 mb-1">每輪集數</div>
                                         <div className="text-base font-mono text-center">{pl.batch_size}</div>
+                                    </div>
+                                    <div className="bg-white dark:bg-[#161b22] rounded-lg p-3 border border-slate-100 dark:border-slate-800">
+                                        <div className="text-xs text-slate-400 mb-1">自動追蹤</div>
+                                        <div className="text-base font-medium">
+                                            {pl.track !== false ? (
+                                                <span className="text-emerald-500">啟用</span>
+                                            ) : (
+                                                <span className="text-slate-400">關閉</span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -500,6 +514,7 @@ function AddPlaylistModal({ onClose, onSave }: {
         lecture_pdf: '',
         batch_size: 5,
         folder_prefix: 'T097V',
+        track: true,
     });
 
     const [detecting, setDetecting] = useState(false);
@@ -522,6 +537,10 @@ function AddPlaylistModal({ onClose, onSave }: {
         try {
             const res = await axios.post(`${API_BASE}/url/detect`, { url });
             setUrlInfo(res.data);
+            // Auto fill name if empty
+            if (res.data.title && !form.name) {
+                setForm(f => ({ ...f, name: res.data.title }));
+            }
         } catch {
             setUrlInfo(null);
         } finally {
@@ -556,10 +575,12 @@ function AddPlaylistModal({ onClose, onSave }: {
 
                 <div className="space-y-4">
                     <div className="space-y-1.5">
-                        <label htmlFor="new_playlist_name" className="text-sm font-medium text-slate-700 dark:text-slate-300">清單名稱 *</label>
+                        <label htmlFor="new_playlist_name" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                            清單名稱 <span className="text-slate-400 font-normal ml-1">(貼上網址後系統會自動偵測，亦可手動修改)</span> *
+                        </label>
                         <input id="new_playlist_name" type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
                             className="w-full bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-[#3B82F6] outline-none"
-                            placeholder="例如: 淨空法師開示 第一輯" />
+                            placeholder={detecting ? "正在自動抓取清單名稱..." : "例如: 淨空法師開示 第一輯"} />
                     </div>
 
                     <div className="space-y-1.5">
@@ -579,14 +600,14 @@ function AddPlaylistModal({ onClose, onSave }: {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                            <label htmlFor="new_playlist_output_dir" className="text-sm font-medium text-slate-700 dark:text-slate-300">輸出目錄</label>
-                            <input id="new_playlist_output_dir" type="text" value={form.output_dir} onChange={e => setForm({ ...form, output_dir: e.target.value })}
-                                className="w-full bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-[#3B82F6] outline-none"
-                                placeholder="/mnt/nas/..." />
+                        <div className="space-y-1.5 opacity-60">
+                            <label htmlFor="new_playlist_output_dir" className="text-sm font-medium text-slate-700 dark:text-slate-300">輸出目錄 (自動鎖定)</label>
+                            <input id="new_playlist_output_dir" type="text" value={form.output_dir} disabled
+                                className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 text-sm focus:ring-0 outline-none cursor-not-allowed"
+                                placeholder="系統將依前綴自動產生路徑" />
                         </div>
                         <div className="space-y-1.5">
-                            <label htmlFor="new_playlist_folder_prefix" className="text-sm font-medium text-slate-700 dark:text-slate-300">資料夾前綴 (例如 T097V)</label>
+                            <label htmlFor="new_playlist_folder_prefix" className="text-sm font-medium text-slate-700 dark:text-slate-300">資料夾前綴 (例如 T097V) *</label>
                             <input id="new_playlist_folder_prefix" type="text" value={form.folder_prefix} onChange={e => setForm({ ...form, folder_prefix: e.target.value })}
                                 className="w-full bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-[#3B82F6] outline-none"
                                 placeholder="T097V" />
@@ -622,12 +643,28 @@ function AddPlaylistModal({ onClose, onSave }: {
                                 onChange={e => setForm({ ...form, batch_size: parseInt(e.target.value) || 5 })}
                                 className="w-full bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-[#3B82F6] outline-none" />
                         </div>
-                        <div className="space-y-1.5">
-                            <label htmlFor="new_playlist_lecture_pdf" className="text-sm font-medium text-slate-700 dark:text-slate-300">講義 PDF 路徑</label>
-                            <input id="new_playlist_lecture_pdf" type="text" value={form.lecture_pdf} onChange={e => setForm({ ...form, lecture_pdf: e.target.value })}
-                                className="w-full bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-[#3B82F6] outline-none"
-                                placeholder="/mnt/nas/.../file.pdf" />
+                        <div className="space-y-1.5 flex items-center pt-6">
+                            <label className="flex items-center cursor-pointer space-x-3">
+                                <div className="relative">
+                                    <input
+                                        type="checkbox"
+                                        className="sr-only"
+                                        checked={form.track}
+                                        onChange={e => setForm({ ...form, track: e.target.checked })}
+                                    />
+                                    <div className={`block w-10 h-6 rounded-full transition-colors ${form.track ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}></div>
+                                    <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${form.track ? 'translate-x-4' : ''}`}></div>
+                                </div>
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">啟用影片追蹤 (Auto Tracking)</span>
+                            </label>
                         </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <label htmlFor="new_playlist_lecture_pdf" className="text-sm font-medium text-slate-700 dark:text-slate-300">講義 PDF 路徑 (選填)</label>
+                        <input id="new_playlist_lecture_pdf" type="text" value={form.lecture_pdf} onChange={e => setForm({ ...form, lecture_pdf: e.target.value })}
+                            className="w-full bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-[#3B82F6] outline-none"
+                            placeholder="系統會自動偵測，若需手動指定請輸入路徑" />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -8,10 +8,11 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 import auto_youtube_whisper
 
+@patch("auto_youtube_whisper.save_processed_videos")
 class TestAutoYoutubeWhisper(unittest.TestCase):
 
     @patch("auto_youtube_whisper.check_video_files_exist")
-    def test_find_new_videos(self, mock_check):
+    def test_find_new_videos(self, mock_check, mock_save):
         # 模擬檔案檢查結果
         # 假設影片 1 已完成，影片 2 不完整，影片 3 完好但 JSON 沒紀錄
         mock_check.side_effect = lambda title, vid, **kwargs: vid == "vid1" or vid == "vid3"
@@ -38,7 +39,7 @@ class TestAutoYoutubeWhisper(unittest.TestCase):
     @patch("auto_youtube_whisper.download_audio")
     @patch("auto_youtube_whisper.run_whisper")
     @patch("auto_youtube_whisper.send_email")
-    def test_process_video_skips_if_exists(self, mock_email, mock_whisper, mock_download):
+    def test_process_video_skips_if_exists(self, mock_email, mock_whisper, mock_download, mock_save):
         # 測試如果檔案都存在，process_video 應該跳過主要步驟
         video = {"id": "test_id", "title": "Test Video 001"}
         pl_config = {"folder_prefix": "T097V"}
@@ -55,7 +56,7 @@ class TestAutoYoutubeWhisper(unittest.TestCase):
             mock_email.assert_not_called() # 不應發送重複 Email
 
     @patch("auto_youtube_whisper.subprocess.run")
-    def test_download_audio_uses_semaphore(self, mock_run):
+    def test_download_audio_uses_semaphore(self, mock_run, mock_save):
         # 測驗 dl_semaphore 是否正常包護下載過程
         video = {"id": "test_id", "title": "Test Video 001"}
         episode_dir = "/tmp/test"

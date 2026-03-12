@@ -182,18 +182,14 @@ def get_playlist_episodes(playlist_id: str):
         except Exception:
             pass
 
-    nas_output_base = playlist_manager._config.get("nas_output_base", "/mnt/nas/Whisper_auto_rum/T097V")
+    nas_output_base = playlist_manager._config.get("nas_output_base", "/mnt/nas/Whisper_auto_rum")
     if playlist:
-        base_config_output_dir = playlist.get("output_dir", "")
-        if base_config_output_dir:
-            target_dir = os.path.join(nas_output_base, base_config_output_dir)
-        else:
-            target_dir = nas_output_base
         prefix = playlist.get("folder_prefix", "T097V")
+        target_dir = os.path.join(nas_output_base, prefix)
     else:
-        # For legacy, nas_output_base usually points to /mnt/nas/Whisper_auto_rum/T097V
-        target_dir = nas_output_base
+        # For legacy fallback
         prefix = "T097V"
+        target_dir = os.path.join(nas_output_base, prefix)
 
     import re, glob
     episodes = []
@@ -360,31 +356,34 @@ async def redo_episode(playlist_id: str, video_id: str, req: Request):
 
 @app.post("/api/url/detect")
 async def detect_url(req: Request):
-    """自動判別 URL 是單一影片還是播放清單。"""
+    """自動判別 URL 是單一影片還是播放清單，並取得名稱。"""
     data = await req.json()
     url = data.get("url", "").strip()
     if not url:
         raise HTTPException(status_code=400, detail="URL is required")
 
     try:
+        # Use --flat-playlist to get metadata without downloading videos
         result = subprocess.run(
-            ["yt-dlp", "--flat-playlist", "--dump-json", "--no-warnings", url],
+            ["yt-dlp", "--flat-playlist", "--dump-single-json", "--no-warnings", url],
             capture_output=True, text=True, timeout=30,
         )
-        lines = [l for l in result.stdout.strip().split("\n") if l.strip()]
-        count = len(lines)
-        if count <= 1:
-            # 單一影片
-            title = ""
-            if lines:
-                try:
-                    info = json.loads(lines[0])
-                    title = info.get("title", "")
-                except Exception:
-                    pass
-            return {"type": "video", "count": 1, "title": title}
+        if result.returncode != 0:
+            raise Exception(result.stderr or "yt-dlp failed")
+
+        info = json.loads(result.stdout)
+        
+        # Check if it's a playlist or a single video
+        _type = info.get("_type", "video")
+        title = info.get("title", "")
+        
+        if _type == "playlist":
+            entries = info.get("entries", [])
+            count = len(entries)
+            return {"type": "playlist", "count": count, "title": title}
         else:
-            return {"type": "playlist", "count": count}
+            return {"type": "video", "count": 1, "title": title}
+
     except subprocess.TimeoutExpired:
         raise HTTPException(status_code=504, detail="yt-dlp timeout")
     except Exception as e:
@@ -430,8 +429,8 @@ def get_dashboard():
         if pl_id:
             matching_pl = next((p for p in all_playlists if p.get("id") == pl_id), None)
             if matching_pl:
-                target_dir = os.path.join(nas_base, matching_pl.get("output_dir", "")) if matching_pl.get("output_dir") else nas_base
                 prefix = matching_pl.get("folder_prefix", "T097V")
+                target_dir = os.path.join(nas_base, prefix)
         
         title = info.get("title", "")
         # Try to find episode number (last digits in title)
@@ -563,6 +562,7 @@ def get_status():
             ep = str(int(match.group(1))).zfill(3)
         else:
             continue
+        # For /api/status, use default prefix logic
         ep_dir = os.path.join(nas_base, "T097V", f"T097V{ep}")
         if os.path.isdir(ep_dir):
             proofread_files = glob.glob(os.path.join(ep_dir, "*_proofread.srt"))

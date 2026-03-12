@@ -80,30 +80,50 @@ def extract_pdf_text(pdf_path):
 
 
 def load_lecture_text(pdf_path=None):
-    """載入講義文字（使用快取避免重複解析 PDF）"""
-    target_pdf = pdf_path if pdf_path else LECTURE_PDF
-    if not target_pdf or not os.path.exists(target_pdf):
+    """載入講義文字（支援多個 PDF 合併，使用快取避免重複解析）"""
+    # 統一成列表處理
+    if pdf_path is None:
+        targets = [LECTURE_PDF] if LECTURE_PDF else []
+    elif isinstance(pdf_path, str):
+        targets = [pdf_path]
+    else:
+        targets = pdf_path
+
+    # 過濾掉不存在的路徑
+    targets = [p for p in targets if p and os.path.exists(p)]
+    if not targets:
         return ""
 
-    # 如果有快取且 PDF 沒更新，直接用快取
-    cache_name = "lecture_cache_" + os.path.basename(target_pdf) + ".txt"
-    cache_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), cache_name)
+    # 如果只有一個，走原有的快取邏輯
+    if len(targets) == 1:
+        target_pdf = targets[0]
+        cache_name = "lecture_cache_" + os.path.basename(target_pdf) + ".txt"
+        cache_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), cache_name)
+        
+        if os.path.exists(cache_path):
+            cache_mtime = os.path.getmtime(cache_path)
+            pdf_mtime = os.path.getmtime(target_pdf)
+            if cache_mtime > pdf_mtime:
+                logger.info(f"使用講義快取: {cache_path}")
+                with open(cache_path, "r", encoding="utf-8") as f:
+                    return f.read()
+                    
+        text = extract_pdf_text(target_pdf)
+        if text:
+            with open(cache_path, "w", encoding="utf-8") as f:
+                f.write(text)
+            logger.info(f"已更新講義快取: {cache_path}")
+        return text
 
-    if os.path.exists(cache_path):
-        cache_mtime = os.path.getmtime(cache_path)
-        pdf_mtime = os.path.getmtime(target_pdf) if os.path.exists(target_pdf) else 0
-        if cache_mtime > pdf_mtime:
-            logger.info(f"使用講義快取: {cache_path}")
-            with open(cache_path, "r", encoding="utf-8") as f:
-                return f.read()
-
-    # 重新解析 PDF
-    text = extract_pdf_text(target_pdf)
-    if text:
-        with open(cache_path, "w", encoding="utf-8") as f:
-            f.write(text)
-        logger.info(f"已更新講義快取: {cache_path}")
-    return text
+    # 多個 PDF 時，按檔名排序併讀取
+    targets.sort()
+    all_texts = []
+    logger.info(f"正在載入並合併多個講義 PDF ({len(targets)} 個)...")
+    for p in targets:
+        # 單個檔案依然使用其各自的快取加速
+        all_texts.append(load_lecture_text(p))
+    
+    return "\n\n".join(all_texts)
 
 
 def parse_srt(srt_path):
@@ -172,15 +192,11 @@ def proofread_chunk(chunk_subtitles, lecture_text, chunk_num, total_chunks, cust
         prompt = prompt.replace("{{srt_text}}", srt_text_only)
     else:
         # Fallback to hardcoded safe default prompt
-        prompt = f"""你是一個佛學大師，精通經律論三藏十二部經典。
-以下文本是 whisper 產生的雙語講座字幕文本（包含如緬甸語等外語及中文現場翻譯），有很多同音字聽打錯誤。
-幫我依據我提供的上課講義校對文本，嚴格依照以下規則，直接修正錯誤：
+        prompt = f"""你是一個佛學大師，精通經律論三藏十二部經典，以下文本是whisper產生的字幕文本，關於佛學課程內容，有很多同音字聽打錯誤，幫我依據我提供的上課講義校對文本，嚴格依照以下規則，直接修正錯誤：
 
-1. 這是講座字幕的文本，請分辨說話者是外語還是中文翻譯，依照原本的語言和用字遣詞斷句輸出。
-2. **絕對不要把外文（如緬甸語）翻譯成中文輸出**，如果是外文發音，請保留該國語言或羅馬拼音。
-3. 如果原文是外文，請維持外文；如果是中文翻譯，請輸出繁體中文。
-4. 重複內容不能省略。
-5. 不要加標點符號。
+1.這是講座字幕的文本，依照原本的用字遣詞斷句輸出，重複內容不能省略，不然字幕會出錯混亂
+2.不要加標點符號
+3.輸出繁體中文
 
 {lecture_section}
 

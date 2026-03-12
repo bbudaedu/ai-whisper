@@ -79,7 +79,11 @@ def send_email(subject, body, attachment_path):
             part.set_payload(attachment.read())
 
         encoders.encode_base64(part)
-        part.add_header("Content-Disposition", f"attachment; filename= {filename}")
+        part.add_header(
+            "Content-Disposition",
+            "attachment",
+            filename=('utf-8', '', filename)
+        )
         msg.attach(part)
 
     try:
@@ -182,12 +186,7 @@ def create_docx(text, output_path):
 
 def main():
     setup_directories()
-
-    # 預先載入標點模型
-    logger.info("正在載入標點模型...")
-    device = 0 if torch.cuda.is_available() else -1
-    punctuator = pipeline("token-classification", model=PUNCTUATION_MODEL, device=device, aggregation_strategy="simple")
-    logger.info("系統啟動完成，開始監控...")
+    logger.info("系統啟動完成，進入按需載入 (Lazy Loading) 監控模式...")
 
     while True:
         try:
@@ -197,22 +196,39 @@ def main():
 
             # 監控音檔 (mp3, wav, m4a)
             files = [f for f in os.listdir(WATCH_DIR) if f.lower().endswith(('.mp3', '.wav', '.m4a'))]
-
+            
+            # 過濾掉尚未寫入完成的檔案
+            pending_files = []
             for file in files:
                 filepath = os.path.join(WATCH_DIR, file)
-                # 簡單檢查檔案大小 > 0 代表寫入可能完成了
-                if os.path.getsize(filepath) == 0:
-                    continue
+                if os.path.getsize(filepath) > 0:
+                    pending_files.append(file)
 
-                logger.info(f"發現音檔: {file}")
+            if not pending_files:
+                time.sleep(10)
+                continue
 
-                # === GPU 互斥鎖：確保不會與 auto_youtube_whisper 同時使用 GPU ===
-                gpu_fd = acquire_gpu_lock()
-                if gpu_fd is None:
-                    logger.info("GPU 被其他行程佔用中，本輪跳過，10 秒後重試...")
-                    break  # 跳出 for 迴圈，等下一輪
+            logger.info(f"發現 {len(pending_files)} 個音檔等待處理")
 
-                try:
+            # === GPU 互斥鎖：確保不會與 auto_youtube_whisper 同時使用 GPU ===
+            gpu_fd = acquire_gpu_lock()
+            if gpu_fd is None:
+                logger.info("GPU 被其他行程佔用中，本輪跳過，10 秒後重試...")
+                time.sleep(10)
+                continue
+
+            punctuator = None
+            try:
+                import gc
+                # 只有在確定拿到鎖且有檔案時，才載入模型
+                logger.info("正在載入標點與 Whisper 模型至 GPU...")
+                device = 0 if torch.cuda.is_available() else -1
+                punctuator = pipeline("token-classification", model=PUNCTUATION_MODEL, device=device, aggregation_strategy="simple")
+
+                for file in pending_files:
+                    filepath = os.path.join(WATCH_DIR, file)
+                    logger.info(f"開始處理: {file}")
+
                     # 1. 執行 faster-whisper 轉錄
                     raw_text = run_whisper(filepath)
                     if not raw_text:
@@ -236,9 +252,23 @@ def main():
                     shutil.move(filepath, os.path.join(PROCESSED_DIR, file))
                     logger.info(f"任務完成: {file}")
 
-                finally:
-                    # 無論成功或失敗，都釋放 GPU 鎖
-                    release_gpu_lock(gpu_fd)
+            finally:
+                # 處理完這批檔案後，釋放模型與記憶體
+                logger.info("釋放 AI 模型與 GPU 記憶體，回歸待命狀態...")
+                if punctuator:
+                    del punctuator
+                
+                # 清空 faster-whisper 的模型快取
+                global _whisper_model_cache
+                _whisper_model_cache.clear()
+                
+                # 強制回收資源
+                gc.collect()
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+
+                # 釋放 GPU 鎖
+                release_gpu_lock(gpu_fd)
 
             time.sleep(10)
 

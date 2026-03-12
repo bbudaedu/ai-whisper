@@ -10,6 +10,7 @@ YouTube 播放清單自動追蹤 + Whisper 辨識 + Gemini 校對 + Email 通知
     python auto_youtube_whisper.py --dry-run # 僅列出新影片，不下載/辨識
 """
 
+import time
 import os
 import sys
 import re
@@ -141,10 +142,8 @@ def get_whisper_lang_code(lang_str):
     return LANGUAGE_MAP.get(lang, lang_str)
 
 
-def get_episode_dir(title, prefix="T097V"):
-    """從影片標題提取集數，建立對應資料夾路徑
-    例如: '佛教公案選集 簡豐文居士 011' -> '/mnt/nas/Whisper_auto_rum/T097V/T097V011'
-    """
+def _calculate_episode_dir(title, prefix="T097V"):
+    """內部輔助函式：強制路徑結構為 基礎路徑/資料夾前綴/資料夾前綴+集數"""
     # 從標題末尾提取數字
     match = re.search(r'(\d+)\s*$', title)
     if match:
@@ -153,9 +152,21 @@ def get_episode_dir(title, prefix="T097V"):
         # 無法提取集數，使用全標題
         episode_num = title.strip().replace(' ', '_')
 
-    episode_dir = os.path.join(NAS_OUTPUT_BASE, f"{prefix}{episode_num}")
+    # 強制使用 NAS_OUTPUT_BASE 作為根路徑
+    target_base = NAS_OUTPUT_BASE.rstrip(os.sep)
+    
+    # 組合路徑：NAS_OUTPUT_BASE / PREFIX / PREFIX###
+    series_dir = os.path.join(target_base, prefix)
+    episode_dir = os.path.join(series_dir, f"{prefix}{episode_num}")
+    
+    return episode_dir
+
+
+def get_episode_dir(title, prefix="T097V"):
+    """建立影片集數對應資料夾路徑 (固定結構)"""
+    episode_dir = _calculate_episode_dir(title, prefix=prefix)
     os.makedirs(episode_dir, exist_ok=True)
-    logger.info(f"輸出目錄: {episode_dir}")
+    logger.info(f"集數目錄: {episode_dir}")
     return episode_dir
 
 
@@ -242,13 +253,12 @@ def check_video_files_exist(title, video_id, prefix="T097V", output_base=None):
     """檢查預期的輸出檔案是否已經存在 (完整的 Pipeline 產出，包含報表)"""
     if output_base is None:
         output_base = NAS_OUTPUT_BASE
-    # 取得預期目錄
+    # 取得預期的集數編號 (用於 Legacy 檔名檢查)
     match = re.search(r'(\d+)\s*$', title)
-    if match:
-        episode_num = str(int(match.group(1))).zfill(3)
-    else:
-        episode_num = title.strip().replace(' ', '_')
-    episode_dir = os.path.join(output_base, f"{prefix}{episode_num}")
+    episode_num = str(int(match.group(1))).zfill(3) if match else title.strip().replace(' ', '_')
+    
+    # 取得預期目錄 (使用統一邏輯)
+    episode_dir = _calculate_episode_dir(title, prefix=prefix)
     
     # 取得安全檔名
     safe_title = "".join(
@@ -519,7 +529,8 @@ def send_email(subject, body, attachment_paths=None):
                     encoders.encode_base64(part)
                     part.add_header(
                         "Content-Disposition",
-                        f"attachment; filename= {filename}",
+                        "attachment",
+                        filename=('utf-8', '', filename)
                     )
                     msg.attach(part)
                 except Exception as e:
@@ -550,6 +561,7 @@ def process_video(video, pl_config):
 
     # 0. 建立該集的輸出資料夾 (例: /mnt/nas/Whisper_auto_rum/T097V/T097V11)
     prefix = pl_config.get("folder_prefix", "T097V")
+    output_dir = pl_config.get("output_dir")
     episode_dir = get_episode_dir(title, prefix=prefix)
 
     # 1. 下載音訊到該集資料夾
@@ -614,9 +626,19 @@ def process_video(video, pl_config):
                 logger.info(f"發現已完成的 Gemini 校對結果，跳過校對: {proofread_srt_path}")
                 proofread_status = True
             else:
-                logger.info("正在进行 Gemini 校對...")
+                logger.info("正在進行 Gemini 校對...")
+                
+                # 自動偵測多個講義 PDF
+                final_pdf_paths = [lecture_pdf_pl] if lecture_pdf_pl and os.path.exists(lecture_pdf_pl) else []
+                if not final_pdf_paths:
+                    series_dir = os.path.dirname(episode_dir)
+                    pdfs = glob.glob(os.path.join(series_dir, "*.pdf"))
+                    if pdfs:
+                        final_pdf_paths = sorted(pdfs)
+                        logger.info(f"自動偵測到 {len(final_pdf_paths)} 個講義 PDF: {final_pdf_paths}")
+                
                 with api_semaphore:
-                    lecture_text = load_lecture_text(pdf_path=lecture_pdf_pl)
+                    lecture_text = load_lecture_text(pdf_path=final_pdf_paths)
                     # Pass proofread_prompt from playlist config down to the proofread engine
                     corrected = proofread_srt(whisper_result["srt"], lecture_text, custom_prompt=proofread_prompt_pl)
                 if corrected:
@@ -772,113 +794,140 @@ def main():
             logger.warning("沒有需執行的播放清單 (可能全部暫停中或皆未啟用)，結束執行。")
             return
 
-        overall_success = 0
-        overall_fail = 0
-
-        for pl in enabled_playlists:
-            global PLAYLIST_URL, NAS_OUTPUT_BASE
-            PLAYLIST_URL = pl.get("url", "")
-            NAS_OUTPUT_BASE = pl.get("output_dir", "") or config_data.get("nas_output_base", "/mnt/nas/Whisper_auto_rum/T097V")
-            playlist_name = pl.get("name", "Unknown")
-
-            # 初始化目錄與讀取狀態
-            setup_directories()
-            processed = load_processed_videos()
+        while True:
+            overall_success = 0
+            overall_fail = 0
             
-            # 取得播放清單影片
-            if not PLAYLIST_URL:
-                logger.info(f"清單 {playlist_name} 沒有 URL，從本地記錄載入虛擬清單")
-                all_videos = []
-                for vid, info in processed.items():
-                    if pl["id"] == "__legacy__" and (not info.get("playlist_id") or info.get("playlist_id") == "__legacy__"):
-                        all_videos.append({"id": vid, "title": info.get("title", f"Unknown_{vid}"), "url": ""})
-                    elif info.get("playlist_id") == pl["id"]:
-                        all_videos.append({"id": vid, "title": info.get("title", f"Unknown_{vid}"), "url": ""})
+            # 重新整理清單
+            pm = PlaylistManager(config_file=CONFIG_FILE)
+            enabled_playlists = pm.get_runnable_playlists()
+            
+            if not enabled_playlists:
+                logger.warning("沒有需執行的播放清單 (可能全部暫停中或皆未啟用)，將在 10 分鐘後重試。")
             else:
-                all_videos = get_playlist_videos()
+                for pl in enabled_playlists:
+                    global PLAYLIST_URL, NAS_OUTPUT_BASE
+                    PLAYLIST_URL = pl.get("url", "")
+                    # 強制使用全局基礎路徑，忽略個別清單的 output_dir 以符合「路徑固定」規則
+                    NAS_OUTPUT_BASE = config_data.get("nas_output_base", "/mnt/nas/Whisper_auto_rum/")
+                    playlist_name = pl.get("name", "Unknown")
 
-            if not all_videos:
-                logger.warning(f"無法從 {playlist_name} 取得影片資訊。")
-                continue
+                    # 初始化目錄與讀取狀態
+                    setup_directories()
+                    processed = load_processed_videos()
+                    
+                    # 取得播放清單影片
+                    is_tracking_enabled = pl.get("track", True)
+                    if not PLAYLIST_URL:
+                        logger.info(f"清單 {playlist_name} 沒有 URL，從本地記錄載入虛擬清單")
+                        all_videos = []
+                        for vid, info in processed.items():
+                            if pl["id"] == "__legacy__" and (not info.get("playlist_id") or info.get("playlist_id") == "__legacy__"):
+                                all_videos.append({"id": vid, "title": info.get("title", f"Unknown_{vid}"), "url": ""})
+                            elif info.get("playlist_id") == pl["id"]:
+                                all_videos.append({"id": vid, "title": info.get("title", f"Unknown_{vid}"), "url": ""})
+                    elif not is_tracking_enabled:
+                        logger.info(f"清單 {playlist_name} 已停用追蹤 (track=False)，從本地記錄載入影片清單")
+                        all_videos = []
+                        # 從已處理的記錄中找出屬於這個清單的影片，以便進行重試或補漏
+                        for vid, info in processed.items():
+                            if info.get("playlist_id") == pl["id"]:
+                                all_videos.append({"id": vid, "title": info.get("title", f"Unknown_{vid}"), "url": f"https://www.youtube.com/watch?v={vid}"})
+                        # 如果是 legacy 且沒標記 playlist_id 的也算進去
+                        if pl["id"] == "__legacy__":
+                           for vid, info in processed.items():
+                               if not info.get("playlist_id"):
+                                   all_videos.append({"id": vid, "title": info.get("title", f"Unknown_{vid}"), "url": f"https://www.youtube.com/watch?v={vid}"})
+                    else:
+                        all_videos = get_playlist_videos()
 
-            # 找出新影片
-            prefix = pl.get("folder_prefix", "T097V")
-            new_videos = find_new_videos(all_videos, processed, pl.get("id", ""), prefix=prefix, output_base=NAS_OUTPUT_BASE)
-            if not new_videos:
-                logger.info(f"清單 {playlist_name} 沒有需要處理的新影片。")
-                # Update processed_count for UI completeness
-                if "processed_count" not in pl or pl["processed_count"] != len(all_videos):
-                    pm.update_playlist(pl["id"], {"processed_count": len(all_videos), "total_videos": len(all_videos)})
-                continue
-                
-            # 套用 batch_size 限制進行 Round-Robin 調度
-            batch_size = pl.get("batch_size", 5)
-            new_videos_batch = new_videos[:batch_size]
+                    if not all_videos:
+                        logger.warning(f"無法從 {playlist_name} 取得影片資訊。")
+                        continue
+
+                    # 找出新影片
+                    prefix = pl.get("folder_prefix", "T097V")
+                    new_videos = find_new_videos(all_videos, processed, pl.get("id", ""), prefix=prefix, output_base=NAS_OUTPUT_BASE)
+                    if not new_videos:
+                        logger.info(f"清單 {playlist_name} 沒有需要處理的新影片。")
+                        # Update processed_count for UI completeness
+                        if "processed_count" not in pl or pl["processed_count"] != len(all_videos):
+                            pm.update_playlist(pl["id"], {"processed_count": len(all_videos), "total_videos": len(all_videos)})
+                        continue
+                        
+                    # 套用 batch_size 限制進行 Round-Robin 調度
+                    batch_size = pl.get("batch_size", 5)
+                    new_videos_batch = new_videos[:batch_size]
+                    
+                    logger.info(f"清單 {playlist_name} 共有 {len(new_videos)} 期待處理，本輪將處理前 {len(new_videos_batch)} 集")
+                    
+                    # 預先更新總數
+                    pm.update_playlist(pl["id"], {"total_videos": len(all_videos)})
+
+                    # Dry run 模式
+                    if args.dry_run:
+                        logger.info(f"\n[DRY RUN] {playlist_name} 將會處理以下影片:")
+                        for i, v in enumerate(new_videos_batch, 1):
+                            logger.info(f"  {i}. [{v['id']}] {v['title']}")
+                        continue
+
+                    # 處理新影片
+                    success_count = 0
+                    fail_count = 0
+
+                    # 使用 ThreadPoolExecutor 並行處理多部影片
+                    max_workers = min(len(new_videos_batch), batch_size)
+                    logger.info(f"啟動 {max_workers} 個工作執行緒並行處理...")
+                    
+                    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                        # 提交所有任務
+                        future_to_video = {executor.submit(process_video, video, pl): video for video in new_videos_batch}
+                        
+                        for future in concurrent.futures.as_completed(future_to_video):
+                            video = future_to_video[future]
+                            try:
+                                result = future.result()
+                                if result["success"]:
+                                    success_count += 1
+                                    # 執行緒安全地更新狀態
+                                    with state_lock:
+                                        # 重新讀取，以免其他執行緒剛存過
+                                        current_processed = load_processed_videos()
+                                        current_processed[video["id"]] = {
+                                            "title": video["title"],
+                                            "processed_at": datetime.now().isoformat(),
+                                            "srt": result.get("srt", ""),
+                                            "txt": result.get("txt", ""),
+                                            "proofread": result.get("proofread", False),
+                                            "playlist_id": pl.get("id", ""),
+                                        }
+                                        save_processed_videos(current_processed)
+                                else:
+                                    fail_count += 1
+                                    logger.error(f"處理失敗: {video['title']} - {result.get('error', '未知錯誤')}")
+                            except Exception as exc:
+                                fail_count += 1
+                                logger.error(f"影片處理過程中發生未預期錯誤: {video['title']} - {exc}")
+                    
+                    overall_success += success_count
+                    overall_fail += fail_count
+                    logger.info(f"清單 {playlist_name} 執行完畢 (本輪成功: {success_count}, 失敗: {fail_count})")
+                    
+                    # 更新處理數量
+                    pm._config = pm._load_config() # Reload in case of concurrent changes
+                    current_processed_total = len([v for v in load_processed_videos().values() if v.get("playlist_id") == pl["id"]])
+                    pm.update_playlist(pl["id"], {"processed_count": current_processed_total})
+
+            # 總結一輪
+            logger.info("=" * 60)
+            logger.info(f"本輪執行完成 - 總成功: {overall_success}, 總失敗: {overall_fail}")
+            logger.info("正在等待下一輪 (10 分鐘)...")
+            logger.info("=" * 60)
             
-            logger.info(f"清單 {playlist_name} 共有 {len(new_videos)} 期待處理，本輪將處理前 {len(new_videos_batch)} 集")
-            
-            # 預先更新總數
-            pm.update_playlist(pl["id"], {"total_videos": len(all_videos)})
-
-            # Dry run 模式
             if args.dry_run:
-                logger.info(f"\n[DRY RUN] {playlist_name} 將會處理以下影片:")
-                for i, v in enumerate(new_videos_batch, 1):
-                    logger.info(f"  {i}. [{v['id']}] {v['title']}")
-                continue
-
-            # 處理新影片
-            success_count = 0
-            fail_count = 0
-
-            # 使用 ThreadPoolExecutor 並行處理多部影片
-            # 各階段資源瓶頸 (GPU, API, DL) 已透過全域 Semaphore 控制
-            max_workers = min(len(new_videos_batch), batch_size)
-            logger.info(f"啟動 {max_workers} 個工作執行緒並行處理...")
-            
-            with ThreadPoolExecutor(max_workers=max_workers) as executor:
-                # 提交所有任務
-                future_to_video = {executor.submit(process_video, video, pl): video for video in new_videos_batch}
+                break # Dry run mode runs only once
                 
-                for future in concurrent.futures.as_completed(future_to_video):
-                    video = future_to_video[future]
-                    try:
-                        result = future.result()
-                        if result["success"]:
-                            success_count += 1
-                            # 執行緒安全地更新狀態
-                            with state_lock:
-                                # 重新讀取，以免其他執行緒剛存過
-                                current_processed = load_processed_videos()
-                                current_processed[video["id"]] = {
-                                    "title": video["title"],
-                                    "processed_at": datetime.now().isoformat(),
-                                    "srt": result.get("srt", ""),
-                                    "txt": result.get("txt", ""),
-                                    "proofread": result.get("proofread", False),
-                                    "playlist_id": pl.get("id", ""),
-                                }
-                                save_processed_videos(current_processed)
-                        else:
-                            fail_count += 1
-                            logger.error(f"處理失敗: {video['title']} - {result.get('error', '未知錯誤')}")
-                    except Exception as exc:
-                        fail_count += 1
-                        logger.error(f"影片處理過程中發生未預期錯誤: {video['title']} - {exc}")
-            
-            overall_success += success_count
-            overall_fail += fail_count
-            logger.info(f"清單 {playlist_name} 執行完畢 (本輪成功: {success_count}, 失敗: {fail_count})")
-            
-            # 更新處理數量
-            pm._config = pm._load_config() # Reload in case of concurrent changes
-            current_processed = len([v for v in load_processed_videos().values() if v.get("playlist_id") == pl["id"]])
-            pm.update_playlist(pl["id"], {"processed_count": current_processed})
-
-        # 總結
-        logger.info("=" * 60)
-        logger.info(f"全部執行完成 - 總成功: {overall_success}, 總失敗: {overall_fail}")
-        logger.info("=" * 60)
+            time.sleep(600)  # Sleep for 10 minutes
 
     finally:
         # 不管正常結束、例外或崩潰還原，都確保 GPU 鎖被釋放

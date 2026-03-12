@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 PLAYLIST_DEFAULTS = {
     "processed_count": 0,   # 已處理影片數
     "folder_prefix": "T097V", # 資料夾前綴 (例如 T097V001)
+    "track": True,           # 是否追蹤新影片
 }
 
 DEFAULT_CONFIG = {
@@ -168,7 +169,7 @@ class PlaylistManager:
             "name", "url", "output_dir", "whisper_model", "enabled",
             "schedule", "whisper_lang", "whisper_prompt", "lecture_pdf",
             "status", "batch_size", "total_videos", "processed_count",
-            "folder_prefix", "proofread_prompt",
+            "folder_prefix", "proofread_prompt", "track",
         }
         for key, val in updates.items():
             if key in allowed_keys:

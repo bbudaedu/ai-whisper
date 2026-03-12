@@ -48,6 +48,7 @@ export interface PlaylistData {
     proofread_prompt?: string;
     lecture_pdf?: string;
     batch_size?: number;
+    track?: boolean;
     total_videos: number;
     stats: PlaylistStats;
     videos: VideoInfo[];
