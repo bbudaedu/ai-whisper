@@ -2,7 +2,7 @@
 phase: 1
 slug: task-queue-scheduling
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-03-21
 ---
@@ -36,13 +36,24 @@ created: 2026-03-21
 
 ## Per-Task Verification Map
 
-| Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
-|---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 01-01-01 | 01 | 1 | QUEUE-01 | integration | `pytest -q tests/test_task_queue.py::test_enqueue_pending` | ❌ W0 | ⬜ pending |
-| 01-02-01 | 02 | 1 | QUEUE-02 | unit | `pytest -q tests/test_scheduler_gpu_lock.py::test_single_gpu_enforced` | ❌ W0 | ⬜ pending |
-| 01-03-01 | 03 | 1 | QUEUE-03 | unit | `pytest -q tests/test_scheduler_priority.py::test_internal_before_external` | ❌ W0 | ⬜ pending |
-| 01-04-01 | 04 | 1 | QUEUE-04 | integration | `pytest -q tests/test_pipeline_stages.py::test_stage_fanout` | ❌ W0 | ⬜ pending |
-| 01-05-01 | 05 | 1 | QUEUE-05 | unit | `pytest -q tests/test_retry_policy.py::test_retry_backoff` | ❌ W0 | ⬜ pending |
+| Task ID | Plan | Wave | Requirement | Test Type | Automated Command | Status |
+|---------|------|------|-------------|-----------|-------------------|--------|
+| 01-01 | 01 | 0 | QUEUE-01 | unit | `pytest -q tests/test_task_queue.py::test_create_task_smoke tests/test_task_queue.py::test_create_stage_task_smoke -x` | ⬜ pending |
+| 01-02 | 01 | 0 | QUEUE-01 | unit | `python -c "from pipeline.queue.database import get_engine, create_db_and_tables, get_session, reset_engine; print('OK')"` | ⬜ pending |
+| 01-03 | 01 | 0 | ALL | stub | `pytest -q tests/test_task_queue.py tests/test_scheduler_gpu_lock.py tests/test_scheduler_priority.py tests/test_pipeline_stages.py tests/test_retry_policy.py` | ⬜ pending |
+| 01-04 | 01 | 0 | QUEUE-01 | unit | `pytest -q tests/test_task_queue.py -x` | ⬜ pending |
+| 02-01 | 02 | 1 | QUEUE-01,03 | unit | `pytest -q tests/test_task_queue.py tests/test_scheduler_priority.py -x` | ⬜ pending |
+| 02-02 | 02 | 1 | QUEUE-05 | unit | `pytest -q tests/test_retry_policy.py::test_retry_backoff tests/test_retry_policy.py::test_backoff_max_cap tests/test_retry_policy.py::test_should_retry -x` | ⬜ pending |
+| 02-03 | 02 | 1 | QUEUE-01 | unit | `pytest -q tests/test_migration_fallback.py -x` | ⬜ pending |
+| 03-01 | 03 | 1 | QUEUE-02,03 | unit+int | `pytest -q tests/test_scheduler_gpu_lock.py tests/test_scheduler_integration.py -x` | ⬜ pending |
+| 03-02 | 03 | 1 | QUEUE-02 | unit+int | `pytest -q tests/test_scheduler_gpu_lock.py tests/test_scheduler_integration.py -x` | ⬜ pending |
+| 04-01 | 04 | 1 | QUEUE-04 | unit | `python -c "from pipeline.stages import download, transcribe, proofread, postprocess; print('OK')"` | ⬜ pending |
+| 04-02 | 04 | 1 | QUEUE-04 | unit | `pytest -q tests/test_pipeline_stages.py -x` | ⬜ pending |
+| 04-03 | 04 | 1 | QUEUE-04 | integration | `pytest -q tests/test_pipeline_stages.py -x` | ⬜ pending |
+| 05-01 | 05 | 2 | QUEUE-04 | unit | `python -c "from pipeline.queue.scheduler import TaskScheduler; print('build_default_executors' in dir(TaskScheduler))"` | ⬜ pending |
+| 05-02 | 05 | 2 | QUEUE-01 | integration | AST parse check for lifespan, get_queue_status, manage_task | ⬜ pending |
+| 05-03 | 05 | 2 | ALL | integration | `pytest -q tests/test_api_task_submission.py -x` | ⬜ pending |
+| 05-04 | 05 | 2 | ALL | full suite | `pytest -q` | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -71,11 +82,11 @@ created: 2026-03-21
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 10s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 10s
+- [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
