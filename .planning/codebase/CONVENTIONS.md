@@ -1,72 +1,68 @@
 # Coding Conventions
 
-**Analysis Date:** 2026-03-20
+**Analysis Date:** 2026-03-21
 
 ## Naming Patterns
 
 **Files:**
-- Snake case for Python files: `pipeline/notebooklm_tasks.py`, `tests/test_notebooklm_tasks.py`.
+- snake_case: `test_notebooklm_client.py`, `notebooklm_client.py`, `auto_youtube_whisper.py`
 
-**Functions:**
-- Snake case for functions and methods: `build_prompt()`, `parse_response()`, `get_output_path()`.
+**Functions/Methods:**
+- snake_case: `ask_question`, `increment_quota`, `_call_mcp`, `_next_id`
 
 **Variables:**
-- Snake case for local variables and parameters.
-- Uppercase for constants and enum members: `OUTPUT_SUFFIXES`, `OutputType.MINDMAP`.
+- snake_case: `daily_quota`, `npx_command`, `init_msg`, `tool_result`
 
 **Types:**
-- Pascal case for classes and Enums: `OutputType`, `TaskResult`.
+- PascalCase for Classes: `NotebookLMClient`, `RateLimitError`
 
 ## Code Style
 
 **Formatting:**
-- Generally compliant with standard Python PEP 8 conventions.
-- Type hinting is used extensively for function arguments and return types.
+- Indentation: 4 spaces
+- Line Length: Not strictly enforced, but generally readable
 
 **Linting:**
-- Not explicitly configured via standard files (e.g., `.eslintrc`), but code follows clear Pythonic structure.
+- Not detected
 
 ## Import Organization
 
 **Order:**
-1. Standard library imports (e.g., `import logging`, `import os`).
-2. Third-party imports (e.g., `import pytest`).
-3. Local application imports (e.g., `from pipeline.notebooklm_tasks import ...`).
-
-**Path Aliases:**
-- No explicit path aliases observed, relative path manipulation used in test files for imports (`sys.path.insert(0, ...)`).
+1. Standard library imports (e.g., `json`, `os`, `sys`, `pathlib`)
+2. Third-party imports (e.g., `pytest`)
+3. Local/Relative imports (e.g., `from pipeline.notebooklm_client import ...`)
 
 ## Error Handling
 
 **Patterns:**
-- Use of custom error handling in Enum conversion (`from_str` raises `ValueError`).
-- Graceful handling of empty or missing input (e.g., in `parse_response`, `check_existing_outputs`).
+- Custom Exception hierarchy for specialized errors: `NotebookLMError` (base), `RateLimitError`, `AuthenticationError`.
+- `try-except` blocks around I/O operations (JSON reading/parsing, subprocess).
+- Raising specific errors with descriptive messages.
 
 ## Logging
 
-**Framework:** `logging` (standard library).
+**Framework:** `logging` module
 
 **Patterns:**
-- Module-level logger `logger = logging.getLogger(__name__)`.
-- Log entries added for key operations (e.g., saving output).
+- `logger = logging.getLogger(__name__)`
+- `logger.debug()` for internal state and diagnostic information.
 
 ## Comments
 
 **When to Comment:**
-- Docstrings are used for modules, functions, and classes, following the Google Python Style Guide format.
+- Module docstrings explaining overall purpose.
+- Method docstrings defining parameters, behavior, and exceptions.
+- Brief inline comments for logic flows.
+
+**JSDoc/TSDoc:**
+- Python docstrings follow standard Python conventions.
 
 ## Function Design
 
-**Size:** Modular, single-responsibility functions.
+**Size:** Modular and small, focusing on specific tasks (loading/saving, building messages, calling subprocess).
 
-**Parameters:** Use of type annotations for clarity.
-
-**Return Values:** Clearly defined types, occasionally using dataclasses (`TaskResult`) to encapsulate results.
-
-## Module Design
-
-**Exports:** Classes and functions are explicitly imported and used.
+**Parameters:** Use type hints for arguments and return types.
 
 ---
 
-*Convention analysis: 2026-03-20*
+*Convention analysis: 2026-03-21*

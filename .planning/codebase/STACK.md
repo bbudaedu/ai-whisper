@@ -1,44 +1,65 @@
-# 技術棧（Stack）
+# Technology Stack
 
-**Analysis Date:** 2026-03-20
+**Analysis Date:** 2026-03-21
 
-## 語言
+## Languages
 
-- **Python 3.x**：後端服務、pipeline、自動化腳本。
-- **TypeScript 5.x**：前端 Web UI（`web-ui/`）。
+**Primary:**
+- Python 3.x - Used for backend services, automation scripts, and pipeline orchestration.
+- TypeScript (web-ui) - Used for the frontend dashboard.
 
-## 執行環境
+**Secondary:**
+- Bash - Used for shell scripts, process management, and simple environment setups.
 
-- **Python runtime**：後端與 pipeline。
-- **Node.js runtime**：前端建置與開發（`web-ui/`）。
+## Runtime
 
-## 前端框架與工具
+**Environment:**
+- Linux (x86_64, as detected on current host)
 
-- **React**（`web-ui/package.json`）
-- **Vite**（`web-ui/vite.config.ts`）
-- **Tailwind CSS**（`web-ui/package.json`）
-- **ESLint**（`web-ui/eslint.config.js`）
+**Package Manager:**
+- Python: `venv` (virtual environments)
+- Node.js (npm): Package manager for web-ui, uses `vite`.
+- Lockfile: `auto_youtube_whisper.lock` (Python), `package.json` (Node.js).
 
-## 後端與服務入口
+## Frameworks
 
-- 後端 API 入口：`api_server.py`
-- Pipeline 入口：`pipeline/notebooklm_scheduler.py`, `pipeline/notebooklm_tasks.py`
-- 自動化入口：`auto_notebooklm.py`, `auto_youtube_whisper.py`
+**Core:**
+- FastAPI (Python) - Serves the backend API (`api_server.py`).
+- React 19 (TypeScript) - Frontend UI (`web-ui/`).
+- Vite (TypeScript) - Build tool and dev server for frontend.
 
-## 依賴與套件管理
+**Testing:**
+- Python `unittest` (detected as `tests/*.py`)
 
-- **Python**：使用 `pip`（依賴未集中於單一檔案，需依環境管理）
-- **Node.js**：`web-ui/package.json` 與 `web-ui/package-lock.json`
+**Build/Dev:**
+- `yt-dlp` - External tool utilized by Python scripts for media downloads.
+- `ffmpeg` - Media processing tool used by `yt-dlp` and `auto_youtube_whisper.py`.
 
-## 設定與配置
+## Key Dependencies
 
-- 全域設定：`config.json`（另有備份 `config.json.bak`）
-- 其他設定：`model_capabilities.yaml`
+**Critical:**
+- `faster-whisper` - Used for speech-to-text.
+- `openai`/`google-generativeai` (implied) - Used for LLM-based proofreading and summarization.
 
-## 其他工具
+**Infrastructure:**
+- `uvicorn` - ASGI server for FastAPI.
 
-- Shell scripts：`start_dashboard.sh`, `scripts/*.sh`
+## Configuration
+
+**Environment:**
+- `config.json` - Core configuration for all automation tasks.
+- `processed_videos.json` - Tracks pipeline status for videos.
+
+**Build:**
+- `tsconfig.json` - TypeScript configuration.
+- `package.json` - Node project metadata and build scripts.
+
+## Platform Requirements
+
+**Development:**
+- CUDA-enabled GPU (required for `faster-whisper` acceleration).
+- `node` (for `yt-dlp` metadata fetching).
 
 ---
 
-*Stack analysis: 2026-03-20*
+*Stack analysis: 2026-03-21*

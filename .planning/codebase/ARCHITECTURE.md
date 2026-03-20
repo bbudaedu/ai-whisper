@@ -1,80 +1,84 @@
 # Architecture
 
-**Analysis Date:** 2026-03-20
+**Analysis Date:** 2026-03-21
 
 ## Pattern Overview
 
-**Overall:** Task-driven automation pipeline with a supporting backend service and web interface.
+**Overall:** Modular Pipeline/Service-Oriented Architecture
 
 **Key Characteristics:**
-- Orchestration: Pipeline tasks are managed through a scheduler (`pipeline/notebooklm_scheduler.py`) and state management (`pipeline/state.py`).
-- Decoupling: Core processing logic is separated into specialized scripts in the root directory and the `pipeline/` package.
-- API-first: An `api_server.py` provides an interface for external interactions, likely consumed by the `web-ui`.
-- Tool-based: Extensive use of custom scripts for automation, data processing, and proofreading.
+- Separation of concerns through distinct modules for pipeline processing, API communication, and task management.
+- State-driven pipeline management using serialized JSON states.
+- Asynchronous execution support for background tasks.
+- Hybrid architecture including a Python backend for data processing/API management and a React/TypeScript frontend for user interaction.
 
 ## Layers
 
-**Orchestration Layer:**
-- Purpose: Manages the lifecycle of tasks and workflows.
+**Pipeline Layer:**
+- Purpose: Orchestrates data processing (transcription, proofreading, task scheduling).
 - Location: `pipeline/`
-- Contains: `notebooklm_scheduler.py`, `notebooklm_tasks.py`, `state.py`.
-- Depends on: `pipeline/notebooklm_client.py`, `pipeline/api_client.py`.
+- Contains: Task definitions, scheduling logic, and orchestration state.
+- Depends on: API Client, storage, and external services.
 
-**Processing Layer:**
-- Purpose: Handles data processing, proofreading, and automation logic.
-- Location: `root/`, `pipeline/`
-- Contains: `auto_youtube_whisper.py`, `auto_proofread.py`, `pipeline/proofreading_engine.py`, `pipeline/proofread_format.py`.
-- Used by: `pipeline/notebooklm_tasks.py`.
+**API Integration Layer:**
+- Purpose: Manages communication with external APIs (like NotebookLM or generic REST endpoints).
+- Location: `pipeline/api_client.py`, `pipeline/notebooklm_client.py`
+- Contains: API wrapper clients, request handling, and error response management.
 
-**API/Interface Layer:**
-- Purpose: Provides access to services.
-- Location: `api_server.py`, `web-ui/`
-- Contains: FastAPI-based server, React-based web dashboard.
+**Backend Services:**
+- Purpose: Exposes functionality via servers or CLI tools.
+- Location: `api_server.py`, `auto_notebooklm.py`, `auto_youtube_whisper.py`
+- Contains: Entry points for various automation workflows and API endpoints.
+
+**Frontend Layer:**
+- Purpose: Provides user interface for monitoring and management.
+- Location: `web-ui/src/`
+- Contains: React components, state management for frontend, and API consumers.
 
 ## Data Flow
 
-**Task Execution Flow:**
-1. User or automated trigger initiates a process (e.g., video processing).
-2. `pipeline/notebooklm_scheduler.py` registers the task and updates `pipeline/state.py`.
-3. `pipeline/notebooklm_tasks.py` executes specific logic, interacting with external APIs via `pipeline/notebooklm_client.py`.
-4. Results and logs are generated and processed by root scripts.
+**Data Pipeline Flow:**
+
+1. **Trigger:** User or automated process triggers a task via CLI or `api_server.py`.
+2. **Orchestration:** `pipeline/notebooklm_scheduler.py` schedules and manages the execution flow.
+3. **Execution:** Tasks perform operations (transcription, proofreading) using local tools or API clients.
+4. **State Persistence:** Task status and results are persisted in JSON or DB files (`notebooklm_queue.json`, `nocturne_memory/my_memory.db`).
 
 **State Management:**
-- Persistent state is stored in JSON files (`notebooklm_queue.json`, `processed_videos.json`) and sometimes embedded in script-local logic.
+- Application state is largely persisted in JSON files (`pipeline/state.py` handles this) or database files like `my_memory.db`.
 
 ## Key Abstractions
 
-**Task Engine:**
-- Purpose: Abstracting complex processing steps into runnable tasks.
-- Examples: `pipeline/notebooklm_tasks.py` defines unit operations for the pipeline.
+**NotebookLM Tasks:**
+- Purpose: Encapsulates specific actions on NotebookLM.
+- Examples: `pipeline/notebooklm_tasks.py`
+- Pattern: Strategy/Command pattern.
 
-**Adapters:**
-- Purpose: Standardizing interactions with different LLM/service providers.
-- Examples: `adapters/GEMINI.md` indicates modular configuration for model providers.
+**Pipeline State:**
+- Purpose: Represents the current status of a multi-stage process.
+- Examples: `pipeline/state.py`
 
 ## Entry Points
 
-**Pipeline/Automation:**
-- `auto_youtube_whisper.py`: Entry point for whisper-related workflows.
-- `auto_notebooklm.py`: Orchestration script for NotebookLM processes.
-
-**API:**
-- `api_server.py`: Primary service entry point.
+**Main Orchestrator:**
+- Location: `auto_notebooklm.py` (and similar `auto_*.py` scripts)
+- Triggers: CLI commands or system cron/background workers.
+- Responsibilities: Bootstraps the pipeline, loads configuration, and executes top-level workflows.
 
 ## Error Handling
 
-**Strategy:** Centralized logging and file-based state checks.
+**Strategy:** Exception logging and state-based retry mechanisms.
 
 **Patterns:**
-- Extensive use of logs (`*.log`) to track status.
-- Lock files (`*.lock`) used to prevent concurrent execution conflicts (e.g., `gpu_whisper.lock`).
+- Logging via standard Python logging.
+- Retrying tasks based on failure state tracked in JSON queue files.
 
 ## Cross-Cutting Concerns
 
-**Logging:** Standard Python logging, outputting to various `.log` files.
-**Authentication:** Implicit through environment configuration or API keys defined in `config.json`.
-**Validation:** Mostly done via script-specific sanity checks and file format validation in `scripts/`.
+**Logging:** Standard `logging` library used throughout the backend.
+**Validation:** Types defined in `web-ui/src/types.ts` and runtime checks in pipeline.
+**Authentication:** Environment-based credentials management (via `.env` or config files).
 
 ---
 
-*Architecture analysis: 2026-03-20*
+*Architecture analysis: 2026-03-21*

@@ -1,32 +1,55 @@
-# 外部整合（Integrations）
+# External Integrations
 
-**Analysis Date:** 2026-03-20
+**Analysis Date:** 2026-03-21
 
-## 外部服務 / API
+## APIs & External Services
 
-- **NotebookLM**
-  - 相關程式：`auto_notebooklm.py`, `pipeline/notebooklm_client.py`, `pipeline/notebooklm_scheduler.py`, `pipeline/notebooklm_tasks.py`
-  - 可能透過 API/自動化流程與 NotebookLM 互動。
+**Speech-to-Text:**
+- Whisper (Large-v3/v2 via `faster-whisper`) - Used for automated transcriptions (`auto_youtube_whisper.py`).
 
-- **YouTube / Whisper 流程**
-  - 相關程式：`auto_youtube_whisper.py`
-  - 相關產出：`*.srt`, `*.vtt`, `*.tsv`, `*.txt`
+**LLM/AI Services:**
+- Google Gemini (via `auto_proofread.py` and `auto_notebooklm.py`) - Used for proofreading transcripts and generating post-processing content (summaries, infographics, mindmaps).
 
-## 狀態/資料儲存
+**Video Platforms:**
+- YouTube (via `yt-dlp`) - Source for video/audio downloads.
 
-- **JSON 檔案作為狀態儲存**
-  - `notebooklm_queue.json`
-  - `processed_videos.json`
+## Data Storage
 
-## 檔案/資料來源
+**Filesystem:**
+- Network Attached Storage (NAS) - `/mnt/nas/Whisper_auto_rum/` - Used for primary audio, text, SRT, and report storage (`auto_youtube_whisper.py`).
 
-- NAS/掛載路徑：`mnt/`（例如 `mnt/nas/`）
-- 產出與記錄：`*.log`, `*.lock`
+**Caching:**
+- `processed_videos.json` - Used for tracking processing state.
+- `notebooklm_queue.json` - Used for managing NotebookLM tasks.
 
-## 設定與憑證
+## Authentication & Identity
 
-- 設定集中於 `config.json`（可能包含 API key 或敏感設定；未展開驗證）
+**Auth Provider:**
+- Custom / SMTP - Email notifications via Gmail SMTP (hardcoded/config-based credentials for notification automation).
+
+## Monitoring & Observability
+
+**Logs:**
+- Local log files (`youtube_whisper.log`, `notebooklm.log`, `meeting_process.log`) - Used for operational tracking and API exposure.
+
+## CI/CD & Deployment
+
+**Hosting:**
+- Linux VM / Bare Metal - Managed via local scripts and `systemd` (inferred from `api_server.py` execution structure).
+
+## Environment Configuration
+
+**Required env vars:**
+- None strictly enforced via `os.environ` patterns in core scripts; primarily driven by `config.json`.
+
+**Secrets location:**
+- `config.json` contains API keys and SMTP credentials.
+
+## Webhooks & Callbacks
+
+**Incoming:**
+- REST API (FastAPI) at `api_server.py` handles playlist creation, task triggering, and status reporting.
 
 ---
 
-*Integrations analysis: 2026-03-20*
+*Integration audit: 2026-03-21*
