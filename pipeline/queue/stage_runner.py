@@ -101,6 +101,10 @@ def build_context_for_stage(
         "playlist_config": {},
     }
 
+    seed_output = stage_task.get_output()
+    if seed_output:
+        context.update(seed_output)
+
     prev_output = repo.get_previous_stage_output(task.id, stage_task.stage)
     context.update(prev_output)
 
