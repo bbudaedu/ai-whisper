@@ -1,6 +1,9 @@
 import json
 import logging
+import os
+import shutil
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, status
@@ -14,6 +17,9 @@ from pipeline.queue.repository import TaskRepository
 from pipeline.queue.stage_runner import create_initial_stages
 
 logger = logging.getLogger(__name__)
+
+BASE_DIR = Path(__file__).resolve().parents[2]
+OUTPUT_BASE = BASE_DIR / "output"
 
 router = APIRouter(prefix="/api/tasks", tags=["Tasks"])
 
@@ -118,6 +124,8 @@ async def create_task(request: Request, user: dict = Depends(get_current_user)):
     if not requester:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Requester required")
 
+    audio_path = ""
+    episode_dir = ""
     if task_type == "upload":
         if not isinstance(file, UploadFile):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="File required for upload")
@@ -148,7 +156,30 @@ async def create_task(request: Request, user: dict = Depends(get_current_user)):
         session.add(task)
         session.commit()
         session.refresh(task)
-        create_initial_stages(session, task)
+
+        if task_type == "upload":
+            try:
+                filename = os.path.basename(file.filename or f"upload_{task.id}")
+                task_output_dir = OUTPUT_BASE / str(task.id)
+                task_output_dir.mkdir(parents=True, exist_ok=True)
+                upload_path = task_output_dir / filename
+                with upload_path.open("wb") as output_file:
+                    shutil.copyfileobj(file.file, output_file)
+                await file.close()
+                audio_path = str(upload_path)
+                episode_dir = str(task_output_dir)
+            except (OSError, IOError) as exc:
+                logger.exception("Failed to store upload file for task %s", task.id)
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Failed to store upload file",
+                ) from exc
+
+        stage = create_initial_stages(session, task)
+        if task_type == "upload":
+            stage.set_output({"audio_path": audio_path, "episode_dir": episode_dir})
+            session.add(stage)
+            session.commit()
 
     logger.info(
         "Task created via API: id=%s type=%s requester=%s formats=%s",
