@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from api.auth import create_access_token, hash_token, refresh_token_expiry
 from api.schemas import Token, RefreshRequest, RevokeRequest
+from api.routers.download import router as download_router
 from api.routers.tasks import router as tasks_router
 from pipeline.queue.database import create_db_and_tables, get_session
 from pipeline.queue.models import TaskSource, StageType
@@ -62,6 +63,7 @@ app.add_middleware(
 )
 
 app.include_router(tasks_router)
+app.include_router(download_router)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(BASE_DIR, "config.json")
