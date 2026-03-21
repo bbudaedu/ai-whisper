@@ -45,7 +45,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] 02-01-PLAN.md — Models update and Wave 0 Test Stubs
 - [x] 02-02-PLAN.md — Auth API Key Exchange
 - [x] 02-03-PLAN.md — Task Submission API
-- [ ] 02-04-PLAN.md — Task Query and Cancellation API
+- [x] 02-04-PLAN.md — Task Query and Cancellation API
 - [ ] 02-05-PLAN.md — Task Result Download API
 - [ ] 02-06-PLAN.md — Human Verification
 
