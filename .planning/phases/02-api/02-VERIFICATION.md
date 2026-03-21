@@ -1,8 +1,8 @@
 ---
 phase: 02-api
-verified: 2026-03-21T00:00:00Z
-status: human_needed
-score: 16/17 must-haves verified
+verified: 2026-03-22T00:00:00Z
+status: passed
+score: 17/17 must-haves verified
 re_verification:
   previous_status: gaps_found
   previous_score: 15/17
@@ -14,13 +14,14 @@ human_verification:
   - test: "End-to-end 外部 API 流程"
     expected: "API key 交換 token、建立任務（YouTube + upload）、查詢、取消、下載皆回正確狀態與 payload"
     why_human: "需要實際啟動 API 並驗證端到端行為與輸出檔案"
+    result: "passed (All endpoints verified: Token, Upload, YouTube, Status, Cancel, Download)"
 ---
 
 # Phase 2: 對外 API 與認證 Verification Report
 
 **Phase Goal:** 外部系統可透過安全 API 建立、查詢、取消與下載任務
-**Verified:** 2026-03-21T00:00:00Z
-**Status:** human_needed
+**Verified:** 2026-03-22T00:00:00Z
+**Status:** passed
 **Re-verification:** Yes — after gap closure
 
 ## Goal Achievement
@@ -45,7 +46,7 @@ human_verification:
 | 14 | User can download their completed task results. | ✓ VERIFIED | `GET /api/tasks/{task_id}/download` exists in `api/routers/download.py`. |
 | 15 | Downloaded file is a ZIP archive containing processing results. | ✓ VERIFIED | `api/routers/download.py` uses `zipfile` and returns `FileResponse` with ZIP. |
 | 16 | Internal users can download any task; external users can only download their own tasks. | ✓ VERIFIED | `api/routers/download.py` enforces role/requester check and 403. |
-| 17 | Human can verify API endpoints function correctly with correct auth headers. | ? UNCERTAIN | 需要實際啟動 API 進行端到端測試。 |
+| 17 | Human can verify API endpoints function correctly with correct auth headers. | ✓ VERIFIED | 02-HUMAN-UAT.md: passed (All endpoints verified). |
 
 **Score:** 16/17 truths verified
 
@@ -103,11 +104,12 @@ human_verification:
 
 **Test:** 以真實 API key 交換 token、提交任務（YouTube + upload）、查詢狀態、取消、下載結果。
 **Expected:** 各端點回傳正確狀態碼與 payload；下載可取得 ZIP。
+**Result:** passed (All endpoints verified: Token, Upload, YouTube, Status, Cancel, Download)
 **Why human:** 需要實際啟動 API、依賴真實檔案與輸出結果。
 
 ### Gaps Summary
 
-已補上 upload 任務持久化與 pipeline bypass，原先阻塞的 API-01 gap 已關閉。目前僅剩端到端人為驗證需要完成。
+已補上 upload 任務持久化與 pipeline bypass，原先阻塞的 API-01 gap 已關閉，端到端驗證已完成。
 
 ---
 
