@@ -46,8 +46,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] 02-02-PLAN.md — Auth API Key Exchange
 - [x] 02-03-PLAN.md — Task Submission API
 - [x] 02-04-PLAN.md — Task Query and Cancellation API
-- [ ] 02-05-PLAN.md — Task Result Download API
-- [ ] 02-06-PLAN.md — Human Verification
+- [x] 02-05-PLAN.md — Task Result Download API
+- [x] 02-06-PLAN.md — Human Verification
 
 ### Phase 3: 外部 Web UI 與提交流程
 **Goal**: 外部使用者可在 mobile-first UI 登入、提交與追蹤任務，並取得結果與通知
