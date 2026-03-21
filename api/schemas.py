@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
+from pipeline.queue.models import TaskStatus
+
 
 class Token(BaseModel):
     access_token: str
@@ -21,3 +23,16 @@ class TaskCreateResponse(BaseModel):
     task_id: int
     status: str
     created_at: datetime
+
+
+class TaskStatusResponse(BaseModel):
+    id: int
+    title: str
+    status: TaskStatus
+    created_at: datetime
+    requester: str
+
+
+class TaskCancelResponse(BaseModel):
+    status: str
+    reason: str

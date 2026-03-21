@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, stat
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from api.auth import verify_token
-from api.schemas import TaskCreateResponse
+from api.schemas import TaskCancelResponse, TaskCreateResponse, TaskStatusResponse
 from pipeline.queue.database import get_session
 from pipeline.queue.models import TaskSource, TaskStatus
 from pipeline.queue.repository import TaskRepository
@@ -163,3 +163,34 @@ async def create_task(request: Request, user: dict = Depends(get_current_user)):
         status=task.status.value if isinstance(task.status, TaskStatus) else str(task.status),
         created_at=task.created_at,
     )
+
+
+@router.get("/{task_id}", response_model=TaskStatusResponse)
+async def get_task_status(task_id: int, user: dict = Depends(get_current_user)):
+    requester = user.get("user_id") or ""
+    role = user.get("role") or "external"
+    with get_session() as session:
+        repo = TaskRepository(session)
+        task = repo.get_task(task_id, requester=requester if role != "internal" else None)
+        if task is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+        return TaskStatusResponse(
+            id=task.id,
+            title=task.title,
+            status=task.status,
+            created_at=task.created_at,
+            requester=task.requester or "",
+        )
+
+
+@router.post("/{task_id}/cancel", response_model=TaskCancelResponse)
+async def cancel_task(task_id: int, user: dict = Depends(get_current_user)):
+    requester = user.get("user_id") or ""
+    role = user.get("role") or "external"
+    with get_session() as session:
+        repo = TaskRepository(session)
+        result = repo.cancel_task(task_id=task_id, requester=requester, role=role)
+
+    if result.get("status") == "error" and result.get("reason") == "unauthorized":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+    return TaskCancelResponse(status=result.get("status", "unknown"), reason=result.get("reason", "unknown"))
