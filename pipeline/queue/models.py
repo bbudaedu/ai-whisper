@@ -9,10 +9,12 @@ class TaskSource(str, enum.Enum):
     EXTERNAL = "external"
 
 class TaskStatus(str, enum.Enum):
+    QUEUED = "queued"
     PENDING = "pending"
     RUNNING = "running"
     DONE = "done"
     FAILED = "failed"
+    CANCELED = "canceled"
 
 class StageType(str, enum.Enum):
     DOWNLOAD = "download"
@@ -28,6 +30,7 @@ class Task(SQLModel, table=True):
     video_id: str = Field(index=True)
     playlist_id: str = Field(default="")
     source: TaskSource = Field(default=TaskSource.INTERNAL)
+    requester: Optional[str] = Field(default=None, index=True)
     status: TaskStatus = Field(default=TaskStatus.PENDING, index=True)
     priority: int = Field(default=0)  # higher = more urgent
     max_retries: int = Field(default=3)
