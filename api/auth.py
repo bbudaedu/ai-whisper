@@ -1,17 +1,19 @@
 from __future__ import annotations
 
 import os
+import hashlib
 from datetime import datetime, timedelta
 from typing import Any
 
 import jwt
 from fastapi import HTTPException, status
-from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import APIKeyHeader, HTTPBearer
 
 
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", "15"))
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
 JWT_SECRET = os.environ.get("JWT_SECRET", "")
+REFRESH_TOKEN_EXPIRE_DAYS = int(os.environ.get("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
 
 
 api_key_header = APIKeyHeader(name="x-api-key", auto_error=False)
@@ -44,3 +46,11 @@ def verify_token(token: str) -> dict[str, Any]:
     except jwt.PyJWTError as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token") from exc
     return payload
+
+
+def hash_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def refresh_token_expiry() -> datetime:
+    return datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)

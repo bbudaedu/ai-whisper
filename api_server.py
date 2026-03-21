@@ -2,11 +2,16 @@ import asyncio
 import json
 import os
 import subprocess
+import secrets
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.responses import HTMLResponse, StreamingResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
+
+from api.auth import create_access_token, hash_token, refresh_token_expiry
+from api.schemas import Token, RefreshRequest, RevokeRequest
 from pipeline.queue.database import create_db_and_tables, get_session
 from pipeline.queue.models import TaskSource, StageType
 from pipeline.queue.repository import TaskRepository
@@ -44,6 +49,8 @@ async def lifespan(app: FastAPI):
         _scheduler = None
 
 app = FastAPI(lifespan=lifespan)
+
+api_key_header = APIKeyHeader(name="x-api-key", auto_error=False)
 
 app.add_middleware(
     CORSMiddleware,
@@ -93,7 +100,7 @@ def get_default_proofread_prompt():
 @app.post("/api/config")
 async def save_config(req: Request):
     data = await req.json()
-    
+
     existing = {}
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE, "r", encoding="utf-8") as f:
@@ -101,12 +108,63 @@ async def save_config(req: Request):
                 existing = json.load(f)
             except Exception:
                 pass
-                
+
     new_config = {**existing, **data}
-    
+
     with open(CONFIG_FILE, "w", encoding="utf-8") as f:
         json.dump(new_config, f, ensure_ascii=False, indent=2)
     return {"status": "success"}
+
+
+@app.post("/api/auth/token", response_model=Token)
+def exchange_token(api_key: str = Depends(api_key_header)):
+    if not api_key:
+        raise HTTPException(status_code=401, detail="Missing API key")
+    with get_session() as session:
+        repo = TaskRepository(session)
+        api_key_record = repo.verify_api_key(api_key)
+        if api_key_record is None:
+            raise HTTPException(status_code=401, detail="Invalid API key")
+        payload = {"user_id": api_key_record.user_id, "role": api_key_record.role}
+        access_token = create_access_token(payload)
+        refresh_token_raw = secrets.token_urlsafe(48)
+        refresh_hash = hash_token(refresh_token_raw)
+        repo.create_refresh_token(
+            user_id=api_key_record.user_id,
+            role=api_key_record.role,
+            token_hash=refresh_hash,
+            expires_at=refresh_token_expiry(),
+        )
+    return Token(access_token=access_token, refresh_token=refresh_token_raw)
+
+
+@app.post("/api/auth/refresh", response_model=Token)
+def refresh_token(req: RefreshRequest):
+    refresh_hash = hash_token(req.refresh_token)
+    with get_session() as session:
+        repo = TaskRepository(session)
+        token = repo.verify_and_revoke_refresh_token(refresh_hash)
+        if token is None:
+            raise HTTPException(status_code=401, detail="Invalid refresh token")
+        payload = {"user_id": token.user_id, "role": token.role}
+        access_token = create_access_token(payload)
+        new_refresh_raw = secrets.token_urlsafe(48)
+        repo.create_refresh_token(
+            user_id=token.user_id,
+            role=token.role,
+            token_hash=hash_token(new_refresh_raw),
+            expires_at=refresh_token_expiry(),
+        )
+    return Token(access_token=access_token, refresh_token=new_refresh_raw)
+
+
+@app.post("/api/auth/revoke")
+def revoke_token(req: RevokeRequest):
+    refresh_hash = hash_token(req.refresh_token)
+    with get_session() as session:
+        repo = TaskRepository(session)
+        repo.revoke_refresh_token(refresh_hash)
+    return {"status": "revoked"}
 
 # --- Playlist Management API ---
 playlist_manager = PlaylistManager(config_file=CONFIG_FILE)

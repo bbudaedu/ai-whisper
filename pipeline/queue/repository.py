@@ -362,10 +362,13 @@ class TaskRepository:
 
     # ── Refresh Tokens ──────────────────────────────────
 
-    def create_refresh_token(self, user_id: str, token_hash: str, expires_at: datetime) -> None:
+    def create_refresh_token(
+        self, user_id: str, role: str, token_hash: str, expires_at: datetime
+    ) -> None:
         refresh_token = RefreshToken(
             token_hash=token_hash,
             user_id=user_id,
+            role=role,
             expires_at=expires_at,
             is_revoked=False,
         )

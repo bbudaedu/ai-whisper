@@ -21,6 +21,7 @@ class RefreshToken(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     token_hash: str = Field(index=True)
     user_id: str = Field(index=True)
+    role: str = Field(default="external", index=True)
     is_revoked: bool = Field(default=False, index=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     expires_at: Optional[datetime] = Field(default=None)
