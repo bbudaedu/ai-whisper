@@ -12,7 +12,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **QUEUE-01**: 系統提供異步任務佇列，任務提交後排隊等待 GPU 資源
 - [ ] **QUEUE-02**: 單 GPU 排程機制，一次只執行一個 Whisper 任務
 - [ ] **QUEUE-03**: 內部任務優先於外部任務執行
-- [ ] **QUEUE-04**: 工作流模組化為獨立 stage（下載→聽打→校對→排版），各 stage 可並行（下載完第 1 集即交付聽打，同時下載第 2 集）
+- [x] **QUEUE-04**: 工作流模組化為獨立 stage（下載→聽打→校對→排版），各 stage 可並行（下載完第 1 集即交付聽打，同時下載第 2 集）
 - [ ] **QUEUE-05**: 失敗任務自動重試（可設定重試次數）
 
 ### API (API)
@@ -92,7 +92,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | QUEUE-01 | Phase 1 | Pending |
 | QUEUE-02 | Phase 1 | Pending |
 | QUEUE-03 | Phase 1 | Pending |
-| QUEUE-04 | Phase 1 | Pending |
+| QUEUE-04 | Phase 1 | Complete |
 | QUEUE-05 | Phase 1 | Pending |
 | API-01 | Phase 2 | Pending |
 | API-02 | Phase 2 | Pending |
