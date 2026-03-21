@@ -2,14 +2,48 @@ import asyncio
 import json
 import os
 import subprocess
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, StreamingResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from pipeline.queue.database import create_db_and_tables, get_session
+from pipeline.queue.models import TaskSource, StageType
+from pipeline.queue.repository import TaskRepository
+from pipeline.queue.scheduler import TaskScheduler
+from pipeline.queue.stage_runner import create_initial_stages
 from pipeline.playlist_manager import PlaylistManager
+from pipeline.notebooklm_client import NotebookLMClient
+from pipeline.notebooklm_scheduler import NotebookLMScheduler
 from gpu_lock import is_gpu_busy
 
-app = FastAPI()
+# --- Task Queue Scheduler ---
+_scheduler: TaskScheduler | None = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """FastAPI lifespan: 啟動排程器 + DB 初始化。"""
+    global _scheduler
+
+    # Startup: 初始化 DB 並啟動排程器
+    create_db_and_tables()
+
+    _scheduler = TaskScheduler(
+        session_factory=get_session,
+        stage_executors=TaskScheduler.build_default_executors(),
+        poll_interval=5,
+    )
+    await _scheduler.start()
+
+    yield
+
+    # Shutdown: 停止排程器
+    if _scheduler is not None:
+        await _scheduler.stop()
+        _scheduler = None
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -490,9 +524,6 @@ def get_dashboard():
         })
 
     # Determine if we should show a legacy section.
-    # Only show "Standalone/Legacy" section if there are actually legacy videos
-    # AND optionally we don't already have an explicit __legacy__ playlist in all_playlists
-    # BUT to be safe and simple, let's just make sure we don't duplicate.
     has_explicit_legacy = any(pl.get("id") == "__legacy__" for pl in all_playlists)
 
     if legacy_videos and not has_explicit_legacy:
@@ -516,6 +547,39 @@ def get_dashboard():
             "videos": legacy_videos,
         })
 
+    # Include NotebookLM status
+    try:
+        scheduler = _get_nlm_scheduler()
+        nlm_summary = scheduler.get_queue_summary()
+        by_status = nlm_summary.get("by_status", {})
+        nlm_status_data = {
+            "total_quota": nlm_summary.get("quota", {}).get("total", 50),
+            "used_quota": nlm_summary.get("quota", {}).get("used", 0),
+            "remaining_quota": nlm_summary.get("quota", {}).get("remaining", 50),
+            "queue_size": nlm_summary.get("total", 0),
+            "active_tasks": by_status.get("running", 0),
+        }
+    except Exception:
+        nlm_status_data = None
+
+    # For each video, also check NotebookLM outputs
+    for pl in playlist_summaries:
+        for v in pl.get("videos", []):
+            title = v.get("title", "")
+            match = re.search(r'(\d+)\s*$', title)
+            if match:
+                prefix = pl.get("folder_prefix", "T097V")
+                ep = str(int(match.group(1))).zfill(3)
+                nlm_dir = os.path.join(nas_base, prefix, f"{prefix}{ep}", "notebooklm")
+                if os.path.exists(nlm_dir):
+                    v["notebooklm_output"] = {
+                        "mindmap": os.path.exists(os.path.join(nlm_dir, f"{prefix}{ep}_mindmap.md")),
+                        "presentation": os.path.exists(os.path.join(nlm_dir, f"{prefix}{ep}_presentation.md")),
+                        "summary": os.path.exists(os.path.join(nlm_dir, f"{prefix}{ep}_summary.md")),
+                        "infographic_standard": os.path.exists(os.path.join(nlm_dir, f"{prefix}{ep}_infographic_full.md")),
+                        "infographic_compact": os.path.exists(os.path.join(nlm_dir, f"{prefix}{ep}_infographic_compact.md")),
+                    }
+
     total_videos = len(processed)
     total_proofread = sum(1 for v in processed.values() if v.get("proofread"))
 
@@ -527,7 +591,9 @@ def get_dashboard():
             "total_videos": total_videos,
             "total_proofread": total_proofread,
         },
+        "notebooklm": nlm_status_data
     }
+
 # -------------------------------
 
 @app.get("/api/status")
@@ -630,6 +696,8 @@ async def stream_logs(log_type: str, request: Request):
 class TaskRequest(BaseModel):
     action: str
     target: str
+    title: str | None = None
+    source: str | None = None
 
 def _is_whisper_running() -> bool:
     """透過共用 GPU 鎖判斷是否有轉錄行程正在執行。"""
@@ -642,9 +710,46 @@ def get_task_status():
     return {"whisper_running": is_gpu_busy()}
 
 
+@app.get("/api/queue/status")
+def get_queue_status():
+    """查詢任務佇列與排程器狀態。"""
+    with get_session() as session:
+        repo = TaskRepository(session)
+        pending = repo.count_pending_stages()
+        running = repo.get_running_stages()
+
+    return {
+        "scheduler_running": _scheduler is not None and _scheduler._running,
+        "pending_stages": pending,
+        "running_stages": len(running),
+        "gpu_busy": is_gpu_busy(),
+    }
+
+
 @app.post("/api/task")
 def manage_task(req: TaskRequest):
-    if req.action == "proofread":
+    if req.action == "queue":
+        # 新增：佇列式任務提交 → 寫入 SQLite
+        if not req.target:
+            return {"error": "Target (video_id) required"}
+        title = req.title or req.target
+        source_str = req.source or "external"
+        source = TaskSource.INTERNAL if source_str == "internal" else TaskSource.EXTERNAL
+        with get_session() as session:
+            repo = TaskRepository(session)
+            task = repo.create_task(
+                title=title,
+                video_id=req.target,
+                source=source,
+            )
+            stage = create_initial_stages(session, task)
+        return {
+            "status": "queued",
+            "task_id": task.id,
+            "stage_id": stage.id,
+            "video_id": req.target,
+        }
+    elif req.action == "proofread":
         if not req.target:
             return {"error": "Target required"}
         python_bin = os.path.join(BASE_DIR, "venv", "bin", "python3")
@@ -662,6 +767,154 @@ def manage_task(req: TaskRequest):
         subprocess.Popen(cmd, cwd=BASE_DIR, stdout=log_file, stderr=subprocess.STDOUT)
         return {"status": "started", "cmd": cmd}
     return {"error": "Unknown action"}
+
+
+# ---------------------------------------------------------------
+# NotebookLM Post-Processing Endpoints
+# ---------------------------------------------------------------
+
+NLM_QUEUE_FILE = os.path.join(BASE_DIR, "notebooklm_queue.json")
+
+
+def _get_nlm_scheduler() -> NotebookLMScheduler:
+    """Construct a scheduler using current config (no side effects)."""
+    cfg = {}
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+            cfg = json.load(f)
+    nlm_cfg = cfg.get("notebooklm", {})
+    notebook_url = nlm_cfg.get("notebook_url", "")
+    daily_quota = nlm_cfg.get("daily_quota_per_account", 50)
+    client = NotebookLMClient(daily_quota=daily_quota)
+    return NotebookLMScheduler(
+        queue_file=NLM_QUEUE_FILE,
+        notebook_url=notebook_url,
+        client=client,
+        daily_quota=daily_quota,
+    )
+
+
+@app.get("/api/notebooklm/status")
+def nlm_status():
+    """NotebookLM 佇列與 quota 狀態。"""
+    scheduler = _get_nlm_scheduler()
+    summary = scheduler.get_queue_summary()
+    by_status = summary.get("by_status", {})
+    return {
+        "quota": summary["quota"],
+        "queue": {
+            "total": summary["total"],
+            "pending": by_status.get("pending", 0),
+            "running": by_status.get("running", 0),
+            "completed": by_status.get("completed", 0),
+            "failed": by_status.get("failed", 0),
+        },
+    }
+
+
+@app.get("/api/notebooklm/quota")
+def nlm_quota():
+    """NotebookLM 今日配額詳細。"""
+    scheduler = _get_nlm_scheduler()
+    return scheduler.client.get_quota_info()
+
+
+@app.get("/api/notebooklm/queue")
+def nlm_queue():
+    """NotebookLM 佇列內容。"""
+    scheduler = _get_nlm_scheduler()
+    return {"items": scheduler.get_queue_items()}
+
+
+class NlmTriggerReq(BaseModel):
+    episode: str = ""  # Optional: e.g. 'T097V017'. Empty = all eligible.
+    tasks: list[str] = []  # Optional: specific output types
+
+
+@app.post("/api/notebooklm/trigger")
+def nlm_trigger(req: NlmTriggerReq):
+    """Trigger NotebookLM 後製（失程剔 subprocess）。"""
+    python_bin = os.path.join(BASE_DIR, "venv", "bin", "python3")
+    cmd = [python_bin, "-u", os.path.join(BASE_DIR, "auto_notebooklm.py")]
+    if req.episode:
+        cmd += ["--episode", req.episode]
+    if req.tasks:
+        for task in req.tasks:
+            cmd += ["--task", task]
+
+    log_path = os.path.join(BASE_DIR, "notebooklm.log")
+    log_file = open(log_path, "a", encoding="utf-8")
+    subprocess.Popen(cmd, cwd=BASE_DIR, stdout=log_file, stderr=subprocess.STDOUT)
+    return {"status": "success", "message": "NotebookLM 後製任務已啟動"}
+
+
+@app.get("/api/notebooklm/outputs/{episode_folder}")
+def nlm_outputs(episode_folder: str):
+    """Get NotebookLM output files for a specific episode."""
+    cfg = {}
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+            cfg = json.load(f)
+
+    nas_base = cfg.get("nas_output_base", "/mnt/nas/Whisper_auto_rum")
+    # episode_folder is like 'T097V017' — detect prefix from first 5 chars
+    prefix = episode_folder[:5] if len(episode_folder) >= 5 else episode_folder
+    ep_dir = os.path.join(nas_base, prefix, episode_folder)
+    nlm_dir = os.path.join(ep_dir, "notebooklm")
+
+    if not os.path.isdir(nlm_dir):
+        return {"episode": episode_folder, "files": []}
+
+    files = [
+        {
+            "filename": fname,
+            "type": _detect_output_type(fname),
+            "size_bytes": os.path.getsize(os.path.join(nlm_dir, fname)),
+        }
+        for fname in sorted(os.listdir(nlm_dir))
+        if fname.endswith(".md")
+    ]
+    return {"episode": episode_folder, "files": files}
+
+
+def _detect_output_type(filename: str) -> str:
+    """Detect output type from filename suffix."""
+    suffixes = {
+        "_mindmap.md": "心智圖",
+        "_presentation.md": "簡報",
+        "_summary.md": "影片摘要",
+        "_infographic_full.md": "資訊圖表標準",
+        "_infographic_compact.md": "資訊圖表精簡",
+    }
+    for suffix, label in suffixes.items():
+        if filename.endswith(suffix):
+            return label
+    return "未知"
+
+
+@app.get("/api/notebooklm/download")
+def nlm_download(episode: str, filename: str):
+    """Serve a specific NotebookLM output file by filename."""
+    cfg = {}
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+            cfg = json.load(f)
+
+    nas_base = cfg.get("nas_output_base", "/mnt/nas/Whisper_auto_rum")
+    prefix = episode[:5]
+    ep_dir = os.path.join(nas_base, prefix, episode)
+    file_path = os.path.join(ep_dir, "notebooklm", filename)
+
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+
+    return FileResponse(path=file_path, filename=filename, media_type="text/markdown")
+
+
+@app.get("/api/notebooklm/logs")
+def nlm_logs():
+    """Get last 200 lines from notebooklm.log."""
+    return {"lines": tail(os.path.join(BASE_DIR, "notebooklm.log"), 200)}
 
 if __name__ == "__main__":
     import uvicorn
