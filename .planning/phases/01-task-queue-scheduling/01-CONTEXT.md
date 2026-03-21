@@ -16,8 +16,10 @@
 ### 佇列持久化策略
 - 使用 SQLite 作為任務佇列的持久化層，零外部依賴，適合單機環境
 - 使用輕量 ORM（SQLModel）管理資料模型，與 FastAPI + Pydantic 自然整合
-- 任務狀態模型：`pending → running → done / failed`，與 ROADMAP.md 定義的 API 查詢狀態一致
-- 現有 `processed_videos.json` 採漸進遷移：新任務寫入 SQLite，舊資料按需讀取 JSON fallback，確保不破壞現有功能
+- 任務狀態模型：`queued → pending → running → done / failed / canceled`（預留 Phase 2 API 取消）
+- 現有 `processed_videos.json` 採漸進遷移：雙寫 JSON + SQLite 一段時間，穩定後停寫 JSON
+- 任務識別：DB 主鍵採 UUID，保留既有影片 ID/清單資訊作為外部欄位
+- SQLite 存放位置：`/mnt/nas/`
 
 ### 排程與優先權機制
 - 佇列分級：內部佇列先清空再處理外部佇列，實現內部任務優先
@@ -28,12 +30,13 @@
 ### Pipeline Stage 並行策略
 - 每個 stage 是獨立任務，完成後自動排入下一 stage（下載→聽打→校對→排版）
 - 父任務 + 子任務模型：播放清單任務為父，每集為子任務，便於查詢整體進度
-- 下載限制 2 並行（沿用現有 `dl_semaphore` 模式），校對/排版不設並行限制
+- 並行限制：全部 stage 僅允許 1 個任務同時執行（下載也不例外）
+- 父任務狀態彙總：全部子任務完成才標記 done
+- Stage 失敗處理：失敗即停止後續 stage，只重試該 stage
 - 現有 `auto_youtube_whisper.py` 核心邏輯抽取為 pipeline 模組，原腳本保留作為 CLI 入口
 
 ### 失敗與重試行為
-- 指數退避重試，預設 3 次
-- 任務層級的 `max_retries` 欄位，可依任務設定重試次數
+- 固定 3 次指數退避重試
 - 僅重試失敗的 stage，不重新執行已完成的 stage
 - 任務記錄重試次數（`retry_count`）與最後錯誤訊息（`error_message`），狀態為 `failed` 時帶錯誤資訊
 
