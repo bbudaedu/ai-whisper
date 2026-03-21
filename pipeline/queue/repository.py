@@ -2,6 +2,10 @@
 import logging
 from datetime import datetime
 from typing import Optional
+import hashlib
+import secrets
+
+from api.models import ApiKey, RefreshToken
 
 from sqlmodel import Session, select, col
 from sqlalchemy import update
@@ -320,5 +324,72 @@ class TaskRepository:
         if status in (TaskStatus.DONE, TaskStatus.FAILED):
             values["completed_at"] = now
         stmt = update(Task).where(Task.id == task_id).values(**values)
+        self.session.exec(stmt)  # type: ignore[arg-type]
+        self.session.commit()
+
+    # ── API Keys ──────────────────────────────────
+
+    def create_api_key(self, user_id: str, role: str) -> str:
+        """建立新的 API key，回傳 raw key（僅顯示一次）。"""
+        raw_key = secrets.token_urlsafe(32)
+        key_hash = hashlib.sha256(raw_key.encode("utf-8")).hexdigest()
+        api_key = ApiKey(
+            key_hash=key_hash,
+            user_id=user_id,
+            role=role,
+            is_active=True,
+        )
+        self.session.add(api_key)
+        self.session.commit()
+        return raw_key
+
+    def revoke_api_key(self, user_id: str) -> None:
+        """撤銷指定 user 的 API key。"""
+        stmt = update(ApiKey).where(ApiKey.user_id == user_id).values(is_active=False)
+        self.session.exec(stmt)  # type: ignore[arg-type]
+        self.session.commit()
+
+    def verify_api_key(self, raw_key: str) -> Optional[ApiKey]:
+        """驗證 raw key，回傳 ApiKey（若有效）。"""
+        key_hash = hashlib.sha256(raw_key.encode("utf-8")).hexdigest()
+        query = (
+            select(ApiKey)
+            .where(ApiKey.key_hash == key_hash)
+            .where(ApiKey.is_active == True)  # noqa: E712
+            .limit(1)
+        )
+        return self.session.exec(query).first()
+
+    # ── Refresh Tokens ──────────────────────────────────
+
+    def create_refresh_token(self, user_id: str, token_hash: str, expires_at: datetime) -> None:
+        refresh_token = RefreshToken(
+            token_hash=token_hash,
+            user_id=user_id,
+            expires_at=expires_at,
+            is_revoked=False,
+        )
+        self.session.add(refresh_token)
+        self.session.commit()
+
+    def verify_and_revoke_refresh_token(self, token_hash: str) -> Optional[RefreshToken]:
+        now = datetime.utcnow()
+        query = (
+            select(RefreshToken)
+            .where(RefreshToken.token_hash == token_hash)
+            .where(RefreshToken.is_revoked == False)  # noqa: E712
+            .where((RefreshToken.expires_at == None) | (RefreshToken.expires_at > now))  # noqa: E711
+            .limit(1)
+        )
+        token = self.session.exec(query).first()
+        if token is None:
+            return None
+        token.is_revoked = True
+        self.session.add(token)
+        self.session.commit()
+        return token
+
+    def revoke_refresh_token(self, token_hash: str) -> None:
+        stmt = update(RefreshToken).where(RefreshToken.token_hash == token_hash).values(is_revoked=True)
         self.session.exec(stmt)  # type: ignore[arg-type]
         self.session.commit()
