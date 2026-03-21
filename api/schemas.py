@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel
 
 
@@ -13,3 +15,9 @@ class RefreshRequest(BaseModel):
 
 class RevokeRequest(BaseModel):
     refresh_token: str
+
+
+class TaskCreateResponse(BaseModel):
+    task_id: int
+    status: str
+    created_at: datetime
