@@ -285,6 +285,29 @@ class TaskRepository:
             query = query.where(StageTask.stage == stage_filter)
         return list(self.session.exec(query).all())
 
+    def get_task(self, task_id: int, requester: Optional[str] = None) -> Optional[Task]:
+        """根據 ID 取得 Task，可選擇限制 requester。"""
+        task = self.session.get(Task, task_id)
+        if task is None:
+            return None
+        if requester and task.requester != requester:
+            return None
+        return task
+
+    def get_tasks(
+        self,
+        requester: Optional[str] = None,
+        status: Optional[TaskStatus] = None,
+    ) -> list[Task]:
+        """查詢任務清單，可選擇限制 requester 與狀態。"""
+        query = select(Task)
+        if requester:
+            query = query.where(Task.requester == requester)
+        if status is not None:
+            query = query.where(Task.status == status)
+        query = query.order_by(col(Task.created_at).desc())
+        return list(self.session.exec(query).all())
+
     def get_task_by_id(self, task_id: int) -> Optional[Task]:
         """根據 ID 取得 Task。"""
         return self.session.get(Task, task_id)
@@ -326,6 +349,32 @@ class TaskRepository:
         stmt = update(Task).where(Task.id == task_id).values(**values)
         self.session.exec(stmt)  # type: ignore[arg-type]
         self.session.commit()
+
+    def cancel_task(self, task_id: int, requester: str, role: str) -> dict:
+        """取消指定 task，回傳狀態與原因。"""
+        task = self.session.get(Task, task_id)
+        if task is None:
+            return {"status": "not_found", "reason": "task_not_found"}
+        if role != "internal" and task.requester != requester:
+            return {"status": "error", "reason": "unauthorized"}
+        if task.status not in {TaskStatus.PENDING, TaskStatus.QUEUED}:
+            return {"status": "unchanged", "reason": "task_already_running"}
+
+        task.status = TaskStatus.CANCELED
+        task.error_message = "client_cancel"
+        task.updated_at = datetime.utcnow()
+        self.session.add(task)
+
+        stages = self.get_stages_for_task(task_id)
+        for stage in stages:
+            if stage.status in {TaskStatus.PENDING, TaskStatus.QUEUED}:
+                stage.status = TaskStatus.CANCELED
+                stage.error_message = "client_cancel"
+                stage.updated_at = datetime.utcnow()
+                self.session.add(stage)
+
+        self.session.commit()
+        return {"status": "canceled", "reason": "client_cancel"}
 
     # ── API Keys ──────────────────────────────────
 
