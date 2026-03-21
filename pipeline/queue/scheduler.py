@@ -37,6 +37,39 @@ class TaskScheduler:
         self._task: Optional[asyncio.Task] = None
         self._dl_semaphore = asyncio.Semaphore(dl_max_concurrent)
 
+    @classmethod
+    def build_default_executors(cls) -> dict[StageType, StageExecutor]:
+        """建立預設的 stage executors 字典。"""
+        from pipeline.stages import download, transcribe, proofread, postprocess
+        from pipeline.queue.stage_runner import build_context_for_stage
+        from pipeline.queue.repository import TaskRepository
+        from pipeline.queue.database import get_session
+
+        def _make_executor(stage_module):
+            """包裝 stage.execute 為 StageExecutor（只接收 StageTask）。
+
+            流程：
+            1. 從 DB 建構 context（含前一 stage 的 output_payload）
+            2. 呼叫 stage_module.execute(stage_task, context)
+            3. 將回傳的 output dict 存入 output_payload
+            """
+            def executor(stage_task: StageTask) -> None:
+                with get_session() as session:
+                    context = build_context_for_stage(session, stage_task)
+                output = stage_module.execute(stage_task, context)
+                if output and isinstance(output, dict):
+                    with get_session() as session:
+                        repo = TaskRepository(session)
+                        repo.save_stage_output(stage_task.id, output)
+            return executor
+
+        return {
+            StageType.DOWNLOAD: _make_executor(download),
+            StageType.TRANSCRIBE: _make_executor(transcribe),
+            StageType.PROOFREAD: _make_executor(proofread),
+            StageType.POSTPROCESS: _make_executor(postprocess),
+        }
+
     async def start(self) -> None:
         """啟動排程器（作為 asyncio task）。"""
         if self._running:
