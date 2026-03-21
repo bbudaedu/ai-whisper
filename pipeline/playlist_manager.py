@@ -16,6 +16,8 @@ PLAYLIST_DEFAULTS = {
     "processed_count": 0,   # 已處理影片數
     "folder_prefix": "T097V", # 資料夾前綴 (例如 T097V001)
     "track": True,           # 是否追蹤新影片
+    "enabled": True,         # 是否啟用
+    "schedule": "daily",    # 排程頻率
 }
 
 DEFAULT_CONFIG = {
