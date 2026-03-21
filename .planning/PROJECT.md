@@ -21,16 +21,13 @@ FaYin 是一套語音處理平台，將現有的 Whisper 語音轉錄能力 API 
 - ✓ 內部 Web UI 監控面板（React + TypeScript） — existing
 - ✓ GPU 鎖定機制（gpu_lock.py） — existing
 - ✓ FastAPI 後端 API 伺服器 — existing
+- ✓ Phase 01: 佇列化任務與單 GPU 排程（含 stage fan-out） — validated in Phase 01
 
 ### Active
 
 <!-- Current scope. Building toward these. -->
 
 **後端 API 化**
-- [ ] 現有工作流模組化（下載部、聽打部、校對部、排版部）
-- [ ] 異步佇列 pipeline：各部門並行運作（下載完第 1 集即交付聽打，同時下載第 2 集）
-- [ ] 統一任務佇列管理（YouTube 監控、內部會議、外部任務）
-- [ ] 單 GPU 排程：一次一個任務，內部任務優先
 - [ ] RESTful API 端點：建立任務、查詢狀態、取消任務、下載結果
 - [ ] Webhook / Email 完成通知
 - [ ] 說話者辨識標註（Speaker A/B/C/D）
@@ -107,4 +104,4 @@ FaYin 是一套語音處理平台，將現有的 Whisper 語音轉錄能力 API 
 | 內部任務優先 | 確保內部工作流不被外部任務影響 | — Pending |
 
 ---
-*Last updated: 2026-03-21 after initialization*
+*Last updated: 2026-03-21 after Phase 01 completion*
