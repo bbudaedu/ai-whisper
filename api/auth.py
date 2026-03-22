@@ -8,6 +8,7 @@ from typing import Any
 import jwt
 from fastapi import HTTPException, status
 from fastapi.security import APIKeyHeader, HTTPBearer
+from passlib.context import CryptContext
 
 
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", "15"))
@@ -18,6 +19,28 @@ REFRESH_TOKEN_EXPIRE_DAYS = int(os.environ.get("REFRESH_TOKEN_EXPIRE_DAYS", "7")
 
 api_key_header = APIKeyHeader(name="x-api-key", auto_error=False)
 http_bearer = HTTPBearer(auto_error=False)
+
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
+
+
+def validate_password_strength(password: str) -> None:
+    if len(password) < 12:
+        raise ValueError("Password must be at least 12 characters long")
+    if not any(char.islower() for char in password):
+        raise ValueError("Password must contain at least one lowercase letter")
+    if not any(char.isupper() for char in password):
+        raise ValueError("Password must contain at least one uppercase letter")
+    if not any(char.isdigit() for char in password):
+        raise ValueError("Password must contain at least one digit")
+
+
+def hash_password(password: str) -> str:
+    validate_password_strength(password)
+    return pwd_context.hash(password)
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
 
 
 def _get_jwt_secret() -> str:
