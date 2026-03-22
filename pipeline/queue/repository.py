@@ -495,3 +495,8 @@ class TaskRepository:
         stmt = update(RefreshToken).where(RefreshToken.token_hash == token_hash).values(is_revoked=True)
         self.session.exec(stmt)  # type: ignore[arg-type]
         self.session.commit()
+
+    def revoke_all_user_refresh_tokens(self, user_id: str) -> None:
+        stmt = update(RefreshToken).where(RefreshToken.user_id == user_id).values(is_revoked=True)
+        self.session.exec(stmt)  # type: ignore[arg-type]
+        self.session.commit()

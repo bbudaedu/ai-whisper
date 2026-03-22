@@ -14,7 +14,7 @@ from passlib.context import CryptContext
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", "15"))
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
 JWT_SECRET = os.environ.get("JWT_SECRET", "")
-REFRESH_TOKEN_EXPIRE_DAYS = int(os.environ.get("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
+REFRESH_TOKEN_EXPIRE_DAYS = int(os.environ.get("REFRESH_TOKEN_EXPIRE_DAYS", "30"))
 
 
 api_key_header = APIKeyHeader(name="x-api-key", auto_error=False)
