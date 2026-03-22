@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard'
 import SubmitTask from './pages/SubmitTask'
 import TaskTracker from './pages/TaskTracker'
 import Playlists from './pages/Playlists'
+import Settings from './pages/Settings'
 import Navigation from './components/Navigation'
 
 // Title updater component
@@ -108,7 +109,7 @@ function AppLayout() {
             <Route path="/submit" element={<SubmitTask />} />
             <Route path="/track" element={<TaskTracker />} />
             <Route path="/playlists" element={<Playlists />} />
-            <Route path="/settings" element={<div className="p-4 text-gray-500">Settings Page (Coming soon)</div>} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
