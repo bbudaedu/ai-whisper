@@ -5,6 +5,7 @@ import { AuthProvider } from './auth/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
+import SubmitTask from './pages/SubmitTask'
 import TaskTracker from './pages/TaskTracker'
 import Navigation from './components/Navigation'
 
@@ -103,7 +104,7 @@ function AppLayout() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             {/* Placeholder routes for now */}
-            <Route path="/submit" element={<div className="p-4 text-gray-500">Submit Task Page (Coming soon)</div>} />
+            <Route path="/submit" element={<SubmitTask />} />
             <Route path="/track" element={<TaskTracker />} />
             <Route path="/playlists" element={<div className="p-4 text-gray-500">Playlists Page (Coming soon)</div>} />
             <Route path="/settings" element={<div className="p-4 text-gray-500">Settings Page (Coming soon)</div>} />
