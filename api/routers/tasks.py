@@ -202,7 +202,36 @@ async def create_task(request: Request, user: dict = Depends(get_current_user)):
     return response
 
 
-@router.get("/{task_id}", response_model=TaskStatusResponse)
+@router.get(\"/history\", response_model=list[TaskStatusResponse])
+async def get_task_history(
+    page: int = 1,
+    size: int = 20,
+    user: dict = Depends(get_current_user),
+):
+    requester = user.get(\"user_id\") or \"\"
+    with get_session() as session:
+        repo = TaskRepository(session)
+        # Using the existing get_tasks with requester filter
+        tasks = repo.get_tasks(requester=requester)
+
+        # Simple pagination and sorting
+        tasks.sort(key=lambda t: t.created_at, reverse=True)
+        start = (page - 1) * size
+        tasks = tasks[start : start + size]
+
+        return [
+            TaskStatusResponse(
+                id=t.id,
+                title=t.title,
+                status=t.status,
+                created_at=t.created_at,
+                requester=t.requester or \"\",
+            )
+            for t in tasks
+        ]
+
+
+@router.get(\"/{task_id}\", response_model=TaskStatusResponse)
 async def get_task_status(task_id: int, user: dict = Depends(get_current_user)):
     requester = user.get("user_id") or ""
     role = user.get("role") or "external"
