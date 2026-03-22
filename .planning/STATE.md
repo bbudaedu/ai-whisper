@@ -17,9 +17,9 @@ progress:
 
 - Phase: 03-web-ui
 - Phase Status: in-progress
-- Current Plan: 4
+- Current Plan: 5
 - Total Plans in Phase: 6
-- Last Updated: 2026-03-22T20:00:00Z
+- Last Updated: 2026-03-22T20:10:00Z
 
 ## Last Session
 
@@ -49,9 +49,13 @@ None. Execution paused before Wave 4 (Plans 04 & 05).
 
 ## Decisions Made
 
+- Unified file upload and YouTube submission into single interface with toggle.
+- Using FormData for file uploads and JSON payload for YouTube URLs.
+
 - Used `@tailwindcss/vite` for Tailwind v4 integration.
 - Initialized basic UI skeleton using a sidebar and main content layout with dark/light mode toggle.
 - Extended `Window` interface globally via `src/vite-env.d.ts` to type Google Identity Services SDK `window.google`.
 - Using React Router's `NavLink` for routing and active state management rather than local component state.
 
+| Phase 03-web-ui P04 | 4m | 1 tasks | 2 files |
 | Phase 03-web-ui P05 | 10m | 2 tasks | 3 files |
