@@ -362,6 +362,63 @@ class TaskRepository:
             return None
         return user
 
+    def authenticate_google_user(
+        self,
+        email: str,
+        google_sub: str,
+        name: str,
+        avatar_url: str,
+    ) -> Optional[User]:
+        """驗證 Google OAuth，綁定或建立使用者並同步基本資料。"""
+        identity_query = (
+            select(Identity)
+            .where(Identity.provider == "google")
+            .where(Identity.provider_id == google_sub)
+            .limit(1)
+        )
+        identity = self.session.exec(identity_query).first()
+        if identity is not None:
+            user = self.session.get(User, identity.user_id)
+            if user is None:
+                return None
+            if name:
+                user.name = name
+            if avatar_url:
+                user.avatar_url = avatar_url
+            user.updated_at = datetime.utcnow()
+            self.session.add(user)
+            self.session.commit()
+            if not user.is_active:
+                return None
+            return user
+
+        user = self.get_user_by_email(email)
+        if user is None:
+            user = User(email=email, name=name, avatar_url=avatar_url, role="external")
+            self.session.add(user)
+            self.session.commit()
+            self.session.refresh(user)
+        else:
+            if name:
+                user.name = name
+            if avatar_url:
+                user.avatar_url = avatar_url
+            user.updated_at = datetime.utcnow()
+            self.session.add(user)
+            self.session.commit()
+
+        identity = Identity(
+            user_id=user.user_id,
+            provider="google",
+            provider_id=google_sub,
+        )
+        self.session.add(identity)
+        self.session.commit()
+
+        if not user.is_active:
+            return None
+        return user
+
     def get_task_by_video_id(self, video_id: str) -> Optional[Task]:
         """根據 video_id 查詢任務（用於 fallback 查詢）。"""
         query = select(Task).where(Task.video_id == video_id).limit(1)
