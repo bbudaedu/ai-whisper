@@ -59,7 +59,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. 使用者可在 UI 即時查看任務狀態與進度，並在完成後收到 Email 通知。
   4. 使用者可從 UI 下載多格式結果（txt, srt, word, excel, json）。
   5. 使用者可管理播放清單追蹤狀態，新的集數會自動排入任務清單並可在 UI 看到。
-**Plans**: TBD
+**Plans**: 6 plans
+- [ ] 03-01-PLAN.md — Scaffold web-ui-external project
+- [ ] 03-02-PLAN.md — Setup AuthContext and Login UI
+- [ ] 03-03-PLAN.md — Build Responsive Navigation and Dashboard
+- [ ] 03-04-PLAN.md — Build Task Submission Form
+- [ ] 03-05-PLAN.md — Build Task Tracker with Polling
+- [ ] 03-06-PLAN.md — Build Playlist Manager and Settings
 
 ### Phase 4: 校對增強與說話者標註
 **Goal**: 提升轉錄品質並支援講義輔助校對與說話者標註
@@ -89,6 +95,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. 任務佇列與排程基礎 | 6/6 | Complete | 2026-03-21 |
 | 2. 對外 API 與認證 | 0/6 | Not started | - |
-| 3. 外部 Web UI 與提交流程 | 0/TBD | Not started | - |
+| 3. 外部 Web UI 與提交流程 | 0/6 | Not started | - |
 | 4. 校對增強與說話者標註 | 0/TBD | Not started | - |
 | 5. 長期保存與歷史查詢 | 0/TBD | Not started | - |
