@@ -76,11 +76,11 @@ Plans:
   4. 使用者可從 UI 下載多格式結果（txt, srt, word, excel, json）。
   5. 使用者可管理播放清單追蹤狀態，新的集數會自動排入任務清單並可在 UI 看到。
 **Plans**: 6 plans
-- [ ] 03-01-PLAN.md — Scaffold web-ui-external project
-- [ ] 03-02-PLAN.md — Setup AuthContext and Login UI
-- [ ] 03-03-PLAN.md — Build Responsive Navigation and Dashboard
+- [x] 03-01-PLAN.md — Scaffold web-ui-external project
+- [x] 03-02-PLAN.md — Setup AuthContext and Login UI
+- [x] 03-03-PLAN.md — Build Responsive Navigation and Dashboard
 - [ ] 03-04-PLAN.md — Build Task Submission Form
-- [ ] 03-05-PLAN.md — Build Task Tracker with Polling
+- [x] 03-05-PLAN.md — Build Task Tracker with Polling
 - [ ] 03-06-PLAN.md — Build Playlist Manager and Settings
 
 ### Phase 4: 校對增強與說話者標註
