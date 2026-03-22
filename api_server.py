@@ -7,6 +7,7 @@ from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.responses import HTMLResponse, StreamingResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from starlette.middleware.sessions import SessionMiddleware
 
 from api.routers.auth import router as auth_router
 from api.routers.download import router as download_router
@@ -50,6 +51,12 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
+SESSION_SECRET_KEY = os.environ.get("SESSION_SECRET_KEY", "insecure-default-secret")
+
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=SESSION_SECRET_KEY,
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
