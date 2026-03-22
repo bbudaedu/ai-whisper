@@ -11,6 +11,8 @@ from pipeline.queue.repository import TaskRepository
 
 router = APIRouter(tags=["Auth"])
 
+# Explicitly exclude register/verify-email/forgot-password/reset-password endpoints.
+
 
 @router.post("/token", response_model=Token)
 def exchange_token(api_key: str = Depends(api_key_header)):
