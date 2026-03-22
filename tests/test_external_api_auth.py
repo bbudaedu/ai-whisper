@@ -1,6 +1,11 @@
 """External API auth endpoint tests."""
 from __future__ import annotations
 
+import sys
+import types
+
+import importlib.metadata
+
 import pytest
 from fastapi import FastAPI
 from sqlmodel import Session, SQLModel, select
@@ -8,7 +13,6 @@ from starlette.testclient import TestClient
 
 from api.auth import validate_password_strength
 from api.models import Identity, User
-from api.routers.auth import router as auth_router
 
 
 @pytest.fixture
@@ -19,6 +23,61 @@ def client(db_engine, monkeypatch):
 
     def _get_session():
         return Session(db_engine)
+
+    class FakeOAuth:
+        def __init__(self):
+            self.google = types.SimpleNamespace(
+                authorize_access_token=lambda request: {"id_token": "fake-id-token"},
+                authorize_redirect=lambda request, callback_url: {"redirect": callback_url},
+            )
+
+        def register(self, **kwargs):
+            return None
+
+    authlib_module = types.SimpleNamespace(
+        integrations=types.SimpleNamespace(
+            starlette_client=types.SimpleNamespace(OAuth=FakeOAuth)
+        )
+    )
+
+    google_auth_module = types.SimpleNamespace(
+        transport=types.SimpleNamespace(requests=types.SimpleNamespace(Request=lambda: None))
+    )
+    google_oauth_module = types.SimpleNamespace(
+        id_token=types.SimpleNamespace(verify_oauth2_token=lambda *args, **kwargs: {})
+    )
+
+    sys.modules.setdefault("authlib", authlib_module)
+    sys.modules.setdefault("authlib.integrations", authlib_module.integrations)
+    sys.modules.setdefault("authlib.integrations.starlette_client", authlib_module.integrations.starlette_client)
+    sys.modules.setdefault("google", google_auth_module)
+    sys.modules.setdefault("google.auth", google_auth_module)
+    sys.modules.setdefault("google.auth.transport", google_auth_module.transport)
+    sys.modules.setdefault("google.auth.transport.requests", google_auth_module.transport.requests)
+    sys.modules.setdefault("google.oauth2", google_oauth_module)
+    sys.modules.setdefault("google.oauth2.id_token", google_oauth_module.id_token)
+    sys.modules.setdefault(
+        "email_validator",
+        types.SimpleNamespace(
+            EmailNotValidError=ValueError,
+            validate_email=lambda value, **kwargs: types.SimpleNamespace(
+                email=value,
+                normalized=value,
+                local_part=value.split("@")[0],
+            ),
+        ),
+    )
+
+    monkeypatch.setattr(importlib.metadata, "version", lambda name: "2.0.0")
+    monkeypatch.setattr(
+        importlib.metadata,
+        "distribution",
+        lambda name: types.SimpleNamespace(version="2.0.0"),
+    )
+    monkeypatch.setenv("JWT_SECRET", "test-secret")
+    monkeypatch.setattr("api.auth.JWT_SECRET", "test-secret")
+
+    from api.routers.auth import router as auth_router
 
     app = FastAPI()
     app.include_router(auth_router, prefix="/api/auth")
