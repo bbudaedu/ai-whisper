@@ -343,14 +343,20 @@ class TaskRepository:
 
     def authenticate_user_by_email(self, email: str, password: str) -> Optional[User]:
         """驗證 email/password，回傳 User 或 None。"""
-        query = select(User, Identity).where(User.email == email).where(Identity.user_id == User.user_id)
+        query = (
+            select(User, Identity)
+            .where(User.email == email)
+            .where(Identity.user_id == User.user_id)
+            .where(Identity.provider == "email")
+            .where(Identity.provider_id == email)
+        )
         identity_row = self.session.exec(query).first()
         if identity_row is None:
             return None
         user, identity = identity_row
         if not user.is_active:
             return None
-        if identity.provider != "email" or not identity.hashed_password:
+        if not identity.hashed_password:
             return None
         if not verify_password(password, identity.hashed_password):
             return None
