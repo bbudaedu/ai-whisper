@@ -118,3 +118,4 @@ Phases execute in numeric order: 1 → 2 → 02.1 → 3 → 4 → 5
 | 3. 外部 Web UI 與提交流程 | 4/6 | In progress | - |
 | 4. 校對增強與說話者標註 | 0/2 | Complete    | 2026-03-22 |
 | 5. 長期保存與歷史查詢 | 0/TBD | Not started | - |
+- [x] Phase 05-02: Integrate Task Persistence
