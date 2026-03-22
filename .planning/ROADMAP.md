@@ -81,7 +81,7 @@ Plans:
 - [x] 03-03-PLAN.md — Build Responsive Navigation and Dashboard
 - [x] 03-04-PLAN.md — Build Task Submission Form
 - [x] 03-05-PLAN.md — Build Task Tracker with Polling
-- [ ] 03-06-PLAN.md — Build Playlist Manager and Settings
+- [x] 03-06-PLAN.md — Build Playlist Manager and Settings
 
 ### Phase 4: 校對增強與說話者標註
 **Goal**: 提升轉錄品質並支援講義輔助校對與說話者標註

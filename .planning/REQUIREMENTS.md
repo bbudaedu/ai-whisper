@@ -26,7 +26,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Transcription & Processing (PROC)
 
 - [x] **PROC-01**: 使用者可上傳音檔進行語音轉錄
-- [ ] **PROC-02**: 使用者可追蹤 YouTube 播放清單，自動偵測新集數排入佇列
+- [x] **PROC-02**: 使用者可追蹤 YouTube 播放清單，自動偵測新集數排入佇列
 - [x] **PROC-03**: 說話者分離標註（Speaker A/B/C/D）
 - [x] **PROC-04**: 使用者可上傳講義/文本/會議紀錄輔助 LLM 校對，提升正確率
 - [x] **PROC-05**: 上傳過的講義可在下次勾選重複使用
@@ -38,14 +38,14 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **UI-01**: Mobile-first 響應式設計（手機、平板、PC），手機友善是硬需求
 - [x] **UI-02**: 認證登入（Email/Password + Google OAuth）
 - [x] **UI-03**: 上傳音檔介面
-- [ ] **UI-04**: YouTube 播放清單追蹤介面（輸入清單 URL，管理追蹤狀態）
+- [x] **UI-04**: YouTube 播放清單追蹤介面（輸入清單 URL，管理追蹤狀態）
 - [x] **UI-05**: 參數設定介面（Prompt、音檔性質、輸出格式選擇）
 - [x] **UI-06**: 任務進度追蹤介面（即時顯示任務狀態與進度）
 - [x] **UI-07**: 結果下載介面
 
 ### Notification & Delivery (NOTF)
 
-- [ ] **NOTF-01**: 任務完成後發送 Email 通知
+- [x] **NOTF-01**: 任務完成後發送 Email 通知
 - [x] **NOTF-02**: 多格式輸出（txt, srt, word, excel, json）
 
 ### Storage (STOR)
@@ -100,7 +100,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | API-04 | Phase 2 | Complete |
 | API-05 | Phase 2 | Complete |
 | PROC-01 | Phase 3 | Pending |
-| PROC-02 | Phase 3 | Pending |
+| PROC-02 | Phase 3 | Complete |
 | PROC-03 | Phase 4 | Complete |
 | PROC-04 | Phase 4 | Complete |
 | PROC-05 | Phase 4 | Complete |
@@ -109,11 +109,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UI-01 | Phase 3 | Complete |
 | UI-02 | Phase 3 | Complete |
 | UI-03 | Phase 3 | Pending |
-| UI-04 | Phase 3 | Pending |
+| UI-04 | Phase 3 | Complete |
 | UI-05 | Phase 3 | Pending |
 | UI-06 | Phase 3 | Complete |
 | UI-07 | Phase 3 | Complete |
-| NOTF-01 | Phase 3 | Pending |
+| NOTF-01 | Phase 3 | Complete |
 | NOTF-02 | Phase 3 | Complete |
 | STOR-01 | Phase 5 | Pending |
 | STOR-02 | Phase 5 | Pending |
