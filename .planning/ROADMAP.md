@@ -49,9 +49,24 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] 02-05-PLAN.md — Task Result Download API
 - [x] 02-06-PLAN.md — Human Verification
 
+### Phase 02.1: 新增外部使用者登入後端：Email/Password、Google OAuth、使用者與憑證儲存、token 交換與刷新 (INSERTED)
+
+**Goal:** 建立外部使用者的 Email/Password 與 Google OAuth 登入機制，並實現持久化的使用者儲存與 token 的輪替撤銷。
+**Requirements**: UI-02
+**Depends on:** Phase 2
+**Plans:** 6 plans
+
+Plans:
+- [ ] 02.1-01-PLAN.md — Add User and Identity DB models
+- [ ] 02.1-02-PLAN.md — Password hashing and User repository methods
+- [ ] 02.1-03-PLAN.md — Email/Password Login API and Token Management Refactoring
+- [ ] 02.1-04-PLAN.md — Google OAuth Login Integration
+- [ ] 02.1-05-PLAN.md — Test cases for Auth Endpoints
+- [ ] 02.1-06-PLAN.md — Human Verification for Phase 02.1
+
 ### Phase 3: 外部 Web UI 與提交流程
 **Goal**: 外部使用者可在 mobile-first UI 登入、提交與追蹤任務，並取得結果與通知
-**Depends on**: Phase 2
+**Depends on**: Phase 02.1
 **Requirements**: UI-01, UI-02, UI-03, UI-04, UI-05, UI-06, UI-07, NOTF-01, NOTF-02, PROC-01, PROC-02, PROC-06, PROC-07
 **Success Criteria** (what must be TRUE):
   1. 使用者可在手機、平板與 PC 上登入（Email/Password 或 Google OAuth）並順利完成主要操作。
@@ -89,12 +104,13 @@ Decimal phases appear between their surrounding integers in numeric order.
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
+Phases execute in numeric order: 1 → 2 → 02.1 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. 任務佇列與排程基礎 | 6/6 | Complete | 2026-03-21 |
 | 2. 對外 API 與認證 | 0/6 | Not started | - |
+| 02.1. 新增外部使用者登入後端 | 0/6 | Not started | - |
 | 3. 外部 Web UI 與提交流程 | 0/6 | Not started | - |
 | 4. 校對增強與說話者標註 | 0/TBD | Not started | - |
 | 5. 長期保存與歷史查詢 | 0/TBD | Not started | - |

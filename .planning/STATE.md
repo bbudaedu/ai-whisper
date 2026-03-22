@@ -8,7 +8,7 @@ last_updated: "2026-03-22T00:19:11.654Z"
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 13
+  total_plans: 19
   completed_plans: 14
 ---
 
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** 任何人都能透過 Web UI 或 API 提交音檔，自動完成語音轉文字、校對與格式化，並在完成後收到通知與結果檔案。
-**Current focus:** Phase 02 — api
+**Current focus:** Phase 02.1 — email-password-google-oauth-token
 
 ## Current Position
 
-Phase: 3
+Phase: 02.1
 Plan: Not started
 
 ## Performance Metrics
@@ -78,6 +78,9 @@ Recent decisions affecting current work:
 [From .planning/todos/pending/ — ideas captured during sessions]
 
 None yet.
+
+### Roadmap Evolution
+- Phase 02.1 inserted after Phase 2: 新增外部使用者登入後端：Email/Password、Google OAuth、使用者與憑證儲存、token 交換與刷新 (URGENT)
 
 ### Blockers/Concerns
 
