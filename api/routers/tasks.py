@@ -11,6 +11,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from api.auth import verify_token
 from api.schemas import TaskCancelResponse, TaskCreateResponse, TaskStatusResponse
+from database.persistence import log_task_event
 from pipeline.queue.database import get_session
 from pipeline.queue.models import TaskSource, TaskStatus
 from pipeline.queue.repository import TaskRepository
@@ -127,10 +128,11 @@ async def create_task(request: Request, user: dict = Depends(get_current_user)):
     audio_path = ""
     episode_dir = ""
     if task_type == "upload":
-        if not isinstance(file, UploadFile):
+        # Some environments have mismatch between fastapi and starlette UploadFile types
+        if not hasattr(file, "filename"):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="File required for upload")
-        video_id = payload.get("video_id") or file.filename or ""
-        title = payload.get("title") or file.filename or "upload"
+        video_id = payload.get("video_id") or getattr(file, "filename", "upload")
+        title = payload.get("title") or getattr(file, "filename", "upload")
         playlist_id = payload.get("playlist_id", "")
     else:
         url = payload.get("url")
@@ -157,6 +159,8 @@ async def create_task(request: Request, user: dict = Depends(get_current_user)):
         session.commit()
         session.refresh(task)
 
+        log_task_event(task.id, 'created', json.dumps({"requester": requester}))
+
         if task_type == "upload":
             try:
                 filename = os.path.basename(file.filename or f"upload_{task.id}")
@@ -181,19 +185,21 @@ async def create_task(request: Request, user: dict = Depends(get_current_user)):
             session.add(stage)
             session.commit()
 
-    logger.info(
-        "Task created via API: id=%s type=%s requester=%s formats=%s",
-        task.id,
-        task_type,
-        requester,
-        output_formats,
-    )
+        logger.info(
+            "Task created via API: id=%s type=%s requester=%s formats=%s",
+            task.id,
+            task_type,
+            requester,
+            output_formats,
+        )
 
-    return TaskCreateResponse(
-        task_id=task.id,
-        status=task.status.value if isinstance(task.status, TaskStatus) else str(task.status),
-        created_at=task.created_at,
-    )
+        response = TaskCreateResponse(
+            task_id=task.id,
+            status=task.status.value if isinstance(task.status, TaskStatus) else str(task.status),
+            created_at=task.created_at,
+        )
+
+    return response
 
 
 @router.get("/{task_id}", response_model=TaskStatusResponse)
