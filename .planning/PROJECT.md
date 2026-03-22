@@ -23,6 +23,16 @@ FaYin 是一套語音處理平台，將現有的 Whisper 語音轉錄能力 API 
 - ✓ FastAPI 後端 API 伺服器 — existing
 - ✓ Phase 01: 佇列化任務與單 GPU 排程（含 stage fan-out） — validated in Phase 01
 - ✓ Phase 02: RESTful API 端點（建立任務、查詢狀態、取消任務、下載結果）與 JWT 認證 — validated in Phase 02
+- ✓ 外部客戶端 Web UI：Mobile-first 響應式設計（手機、平板、PC） — validated in Phase 03
+- ✓ 外部客戶端 Web UI：認證登入（Email/Password + Google OAuth） — validated in Phase 03
+- ✓ 外部客戶端 Web UI：上傳音檔處理 — validated in Phase 03
+- ✓ 外部客戶端 Web UI：YouTube 播放清單追蹤（訂閱後自動偵測新集數排入佇列） — validated in Phase 03
+- ✓ 外部客戶端 Web UI：單檔處理模式 — validated in Phase 03
+- ✓ 外部客戶端 Web UI：Prompt / 參數設定 — validated in Phase 03
+- ✓ 外部客戶端 Web UI：音檔性質選擇（會議、佛學課程） — validated in Phase 03
+- ✓ 外部客戶端 Web UI：輸出格式多選（txt, word, excel, json） — validated in Phase 03
+- ✓ 外部客戶端 Web UI：任務進度追蹤 UI — validated in Phase 03
+- ✓ 外部客戶端 Web UI：完成後 Email 通知 — validated in Phase 03
 
 ### Active
 
@@ -34,16 +44,16 @@ FaYin 是一套語音處理平台，將現有的 Whisper 語音轉錄能力 API 
 - [ ] 說話者辨識標註（Speaker A/B/C/D）
 
 **外部客戶端 Web UI**
-- [ ] Mobile-first 響應式設計（手機、平板、PC）
-- [ ] 認證登入（Email/Password + Google OAuth）
-- [ ] 上傳音檔處理
-- [ ] YouTube 播放清單追蹤（訂閱後自動偵測新集數排入佇列）
-- [ ] 單檔處理模式
-- [ ] Prompt / 參數設定
-- [ ] 音檔性質選擇（會議、佛學課程）
-- [ ] 輸出格式多選（txt, word, excel, json）
-- [ ] 任務進度追蹤 UI
-- [ ] 完成後 Email 通知
+- [x] Mobile-first 響應式設計（手機、平板、PC） — Validated in Phase 03
+- [x] 認證登入（Email/Password + Google OAuth） — Validated in Phase 03
+- [x] 上傳音檔處理 — Validated in Phase 03
+- [x] YouTube 播放清單追蹤（訂閱後自動偵測新集數排入佇列） — Validated in Phase 03
+- [x] 單檔處理模式 — Validated in Phase 03
+- [x] Prompt / 參數設定 — Validated in Phase 03
+- [x] 音檔性質選擇（會議、佛學課程） — Validated in Phase 03
+- [x] 輸出格式多選（txt, word, excel, json） — Validated in Phase 03
+- [x] 任務進度追蹤 UI — Validated in Phase 03
+- [x] 完成後 Email 通知 — Validated in Phase 03
 
 **校對增強**
 - [ ] 上傳講義 / 文本 / 會議紀錄輔助 LLM 校對（提升正確率）
@@ -105,4 +115,4 @@ FaYin 是一套語音處理平台，將現有的 Whisper 語音轉錄能力 API 
 | 內部任務優先 | 確保內部工作流不被外部任務影響 | — Pending |
 
 ---
-*Last updated: 2026-03-22 after Phase 02 completion*
+*Last updated: 2026-03-22 after Phase 03 completion*
