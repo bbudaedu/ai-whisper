@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 from pipeline.queue.models import TaskStatus
 
@@ -17,6 +17,11 @@ class RefreshRequest(BaseModel):
 
 class RevokeRequest(BaseModel):
     refresh_token: str
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
 
 
 class TaskCreateResponse(BaseModel):
