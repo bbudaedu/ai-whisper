@@ -1,10 +1,19 @@
 import { useState } from 'react'
-import { Menu, X, Home, FileAudio, Settings } from 'lucide-react'
+import { Menu, X, Home, FileAudio, Settings, LogOut } from 'lucide-react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider, useAuth } from './auth/AuthContext'
+import { ProtectedRoute } from './components/ProtectedRoute'
+import Login from './pages/Login'
 
-function App() {
+function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const { logout, user } = useAuth()
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen)
+
+  const handleLogout = () => {
+    logout()
+  }
 
   return (
     <div className="flex w-full min-h-screen">
@@ -43,6 +52,19 @@ function App() {
             設定
           </a>
         </nav>
+
+        <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+          <div className="flex items-center justify-between px-3 py-2 text-sm text-gray-700 dark:text-gray-300 mb-2">
+            <span className="truncate">{user?.email || 'User'}</span>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+          >
+            <LogOut className="w-5 h-5" />
+            登出
+          </button>
+        </div>
       </aside>
 
       {/* Main Content Area */}
@@ -75,6 +97,20 @@ function App() {
         </div>
       </main>
     </div>
+  )
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   )
 }
 
