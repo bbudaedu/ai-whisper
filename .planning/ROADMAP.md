@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 2: 對外 API 與認證** - 提供安全的任務建立/查詢/取消/下載 API
 - [x] **Phase 02.1: 新增外部使用者登入後端：Email/Password、Google OAuth、使用者與憑證儲存、token 交換與刷新** (INSERTED)
 - [ ] **Phase 3: 外部 Web UI 與提交流程** - mobile-first UI 讓外部使用者提交與追蹤任務
-- [ ] **Phase 4: 校對增強與說話者標註** - 提升品質與講義輔助校對
+- [x] **Phase 4: 校對增強與說話者標註** - 提升品質與講義輔助校對 (completed 2026-03-22)
 - [ ] **Phase 5: 長期保存與歷史查詢** - 任務與檔案永久保留
 
 ## Phase Details
@@ -91,7 +91,10 @@ Plans:
   1. 轉錄結果包含 Speaker A/B/C/D 標註，使用者可在結果檔案中看到。
   2. 使用者可上傳講義/文本並在任務中套用，結果可被使用者確認為校對品質提升。
   3. 使用者可在新任務中勾選已上傳的講義重複使用。
-**Plans**: TBD
+**Plans:** 2/2 plans complete
+Plans:
+- [x] 04-01-PLAN.md — Speaker Diarization Module
+- [ ] 04-02-PLAN.md — LLM Proofreading with RAG
 
 ### Phase 5: 長期保存與歷史查詢
 **Goal**: 任務與檔案可長期保存並可持續查詢
@@ -113,5 +116,5 @@ Phases execute in numeric order: 1 → 2 → 02.1 → 3 → 4 → 5
 | 2. 對外 API 與認證 | 0/6 | Not started | - |
 | 02.1. 新增外部使用者登入後端 | 6/6 | Complete   | 2026-03-22 |
 | 3. 外部 Web UI 與提交流程 | 4/6 | In progress | - |
-| 4. 校對增強與說話者標註 | 0/TBD | Not started | - |
+| 4. 校對增強與說話者標註 | 0/2 | Complete    | 2026-03-22 |
 | 5. 長期保存與歷史查詢 | 0/TBD | Not started | - |

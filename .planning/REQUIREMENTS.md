@@ -25,21 +25,21 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Transcription & Processing (PROC)
 
-- [ ] **PROC-01**: 使用者可上傳音檔進行語音轉錄
+- [x] **PROC-01**: 使用者可上傳音檔進行語音轉錄
 - [ ] **PROC-02**: 使用者可追蹤 YouTube 播放清單，自動偵測新集數排入佇列
-- [ ] **PROC-03**: 說話者分離標註（Speaker A/B/C/D）
-- [ ] **PROC-04**: 使用者可上傳講義/文本/會議紀錄輔助 LLM 校對，提升正確率
-- [ ] **PROC-05**: 上傳過的講義可在下次勾選重複使用
-- [ ] **PROC-06**: 使用者可選擇音檔性質（會議、佛學課程）套用對應處理流程
-- [ ] **PROC-07**: 使用者可選擇 Prompt 與參數設定
+- [x] **PROC-03**: 說話者分離標註（Speaker A/B/C/D）
+- [x] **PROC-04**: 使用者可上傳講義/文本/會議紀錄輔助 LLM 校對，提升正確率
+- [x] **PROC-05**: 上傳過的講義可在下次勾選重複使用
+- [x] **PROC-06**: 使用者可選擇音檔性質（會議、佛學課程）套用對應處理流程
+- [x] **PROC-07**: 使用者可選擇 Prompt 與參數設定
 
 ### External Web UI (UI)
 
 - [x] **UI-01**: Mobile-first 響應式設計（手機、平板、PC），手機友善是硬需求
 - [x] **UI-02**: 認證登入（Email/Password + Google OAuth）
-- [ ] **UI-03**: 上傳音檔介面
+- [x] **UI-03**: 上傳音檔介面
 - [ ] **UI-04**: YouTube 播放清單追蹤介面（輸入清單 URL，管理追蹤狀態）
-- [ ] **UI-05**: 參數設定介面（Prompt、音檔性質、輸出格式選擇）
+- [x] **UI-05**: 參數設定介面（Prompt、音檔性質、輸出格式選擇）
 - [x] **UI-06**: 任務進度追蹤介面（即時顯示任務狀態與進度）
 - [x] **UI-07**: 結果下載介面
 
@@ -101,9 +101,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | API-05 | Phase 2 | Complete |
 | PROC-01 | Phase 3 | Pending |
 | PROC-02 | Phase 3 | Pending |
-| PROC-03 | Phase 4 | Pending |
-| PROC-04 | Phase 4 | Pending |
-| PROC-05 | Phase 4 | Pending |
+| PROC-03 | Phase 4 | Complete |
+| PROC-04 | Phase 4 | Complete |
+| PROC-05 | Phase 4 | Complete |
 | PROC-06 | Phase 3 | Pending |
 | PROC-07 | Phase 3 | Pending |
 | UI-01 | Phase 3 | Complete |

@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-22T12:00:39.587Z"
+last_updated: "2026-03-22T13:28:20.957Z"
 progress:
   total_phases: 6
-  completed_phases: 3
-  total_plans: 25
-  completed_plans: 25
+  completed_phases: 4
+  total_plans: 27
+  completed_plans: 28
 ---
 
 # STATE: NotebookLM 後製功能完善
@@ -59,3 +59,10 @@ None. Execution paused before Wave 4 (Plans 04 & 05).
 
 | Phase 03-web-ui P04 | 4m | 1 tasks | 2 files |
 | Phase 03-web-ui P05 | 10m | 2 tasks | 3 files |
+| Phase 04-proofreading-and-speaker-labeling P01 | 5m | 1 tasks | 2 files |
+
+- [Phase 04-proofreading-and-speaker-labeling]: 使用 pyannote.audio 作為說話者分離核心技術
+
+| Phase 04 P02 | 15m | 1 tasks | 2 files |
+
+- [Phase 04]: 使用 Pydantic 作為校對結果資料結構
