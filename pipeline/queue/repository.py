@@ -5,7 +5,8 @@ from typing import Optional
 import hashlib
 import secrets
 
-from api.models import ApiKey, RefreshToken
+from api.auth import verify_password
+from api.models import ApiKey, RefreshToken, User, Identity
 
 from sqlmodel import Session, select, col
 from sqlalchemy import update
@@ -311,6 +312,49 @@ class TaskRepository:
     def get_task_by_id(self, task_id: int) -> Optional[Task]:
         """根據 ID 取得 Task。"""
         return self.session.get(Task, task_id)
+
+    def get_user_by_email(self, email: str) -> Optional[User]:
+        """透過 email 查詢使用者。"""
+        query = select(User).where(User.email == email).limit(1)
+        return self.session.exec(query).first()
+
+    def create_user_with_password(
+        self,
+        email: str,
+        name: str,
+        hashed_password: str,
+        role: str = "external",
+    ) -> User:
+        """建立使用者並綁定 email/password Identity。"""
+        user = User(email=email, name=name, role=role)
+        self.session.add(user)
+        self.session.commit()
+        self.session.refresh(user)
+
+        identity = Identity(
+            user_id=user.user_id,
+            provider="email",
+            provider_id=email,
+            hashed_password=hashed_password,
+        )
+        self.session.add(identity)
+        self.session.commit()
+        return user
+
+    def authenticate_user_by_email(self, email: str, password: str) -> Optional[User]:
+        """驗證 email/password，回傳 User 或 None。"""
+        query = select(User, Identity).where(User.email == email).where(Identity.user_id == User.user_id)
+        identity_row = self.session.exec(query).first()
+        if identity_row is None:
+            return None
+        user, identity = identity_row
+        if not user.is_active:
+            return None
+        if identity.provider != "email" or not identity.hashed_password:
+            return None
+        if not verify_password(password, identity.hashed_password):
+            return None
+        return user
 
     def get_task_by_video_id(self, video_id: str) -> Optional[Task]:
         """根據 video_id 查詢任務（用於 fallback 查詢）。"""
