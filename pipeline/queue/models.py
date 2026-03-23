@@ -36,10 +36,30 @@ class Task(SQLModel, table=True):
     max_retries: int = Field(default=3)
     retry_count: int = Field(default=0)
     error_message: str = Field(default="")
+    audio_profile: Optional[str] = Field(default=None)
+    source_metadata: Optional[str] = Field(default=None)  # 儲存 JSON string
     parent_task_id: Optional[int] = Field(default=None, index=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     completed_at: Optional[datetime] = Field(default=None)
+
+class TaskEvent(SQLModel, table=True):
+    __tablename__ = "task_events"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    task_id: int = Field(index=True, foreign_key="tasks.id")
+    event_type: str
+    metadata: Optional[str] = Field(default=None)  # 儲存 JSON string
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class TaskArtifact(SQLModel, table=True):
+    __tablename__ = "task_artifacts"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    task_id: int = Field(index=True, foreign_key="tasks.id")
+    format: str
+    path: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class StageTask(SQLModel, table=True):
     __tablename__ = "stage_tasks"

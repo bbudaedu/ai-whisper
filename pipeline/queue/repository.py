@@ -14,6 +14,8 @@ from sqlalchemy import update
 from pipeline.queue.models import (
     Task,
     StageTask,
+    TaskEvent,
+    TaskArtifact,
     TaskStatus,
     TaskSource,
     StageType,
@@ -439,6 +441,51 @@ class TaskRepository:
             select(StageTask)
             .where(StageTask.task_id == task_id)
             .order_by(col(StageTask.created_at).asc())
+        )
+        return list(self.session.exec(query).all())
+
+    # ── 事件與產出 ──────────────────────────────────
+
+    def add_event(self, task_id: int, event_type: str, metadata: dict = None) -> TaskEvent:
+        """新增任務事件。"""
+        metadata_str = json.dumps(metadata, ensure_ascii=False) if metadata else None
+        event = TaskEvent(
+            task_id=task_id,
+            event_type=event_type,
+            metadata=metadata_str,
+        )
+        self.session.add(event)
+        self.session.commit()
+        self.session.refresh(event)
+        return event
+
+    def add_artifact(self, task_id: int, format: str, path: str) -> TaskArtifact:
+        """新增任務產出檔案紀錄。"""
+        artifact = TaskArtifact(
+            task_id=task_id,
+            format=format,
+            path=path,
+        )
+        self.session.add(artifact)
+        self.session.commit()
+        self.session.refresh(artifact)
+        return artifact
+
+    def get_events(self, task_id: int) -> list[TaskEvent]:
+        """取得任務的所有事件。"""
+        query = (
+            select(TaskEvent)
+            .where(TaskEvent.task_id == task_id)
+            .order_by(col(TaskEvent.created_at).asc())
+        )
+        return list(self.session.exec(query).all())
+
+    def get_artifacts(self, task_id: int) -> list[TaskArtifact]:
+        """取得任務的所有產出檔案。"""
+        query = (
+            select(TaskArtifact)
+            .where(TaskArtifact.task_id == task_id)
+            .order_by(col(TaskArtifact.created_at).asc())
         )
         return list(self.session.exec(query).all())
 
