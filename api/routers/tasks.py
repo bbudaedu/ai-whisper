@@ -10,7 +10,13 @@ from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, stat
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from api.auth import verify_token
-from api.schemas import TaskCancelResponse, TaskCreateResponse, TaskStatusResponse
+from api.schemas import (
+    TaskArtifactSchema,
+    TaskCancelResponse,
+    TaskCreateResponse,
+    TaskEventSchema,
+    TaskStatusResponse,
+)
 from database.persistence import log_task_event
 from pipeline.queue.database import get_session
 from pipeline.queue.models import TaskSource, TaskStatus
@@ -202,13 +208,13 @@ async def create_task(request: Request, user: dict = Depends(get_current_user)):
     return response
 
 
-@router.get(\"/history\", response_model=list[TaskStatusResponse])
+@router.get("/history", response_model=list[TaskStatusResponse])
 async def get_task_history(
     page: int = 1,
     size: int = 20,
     user: dict = Depends(get_current_user),
 ):
-    requester = user.get(\"user_id\") or \"\"
+    requester = user.get("user_id") or ""
     with get_session() as session:
         repo = TaskRepository(session)
         # Using the existing get_tasks with requester filter
@@ -225,13 +231,13 @@ async def get_task_history(
                 title=t.title,
                 status=t.status,
                 created_at=t.created_at,
-                requester=t.requester or \"\",
+                requester=t.requester or "",
             )
             for t in tasks
         ]
 
 
-@router.get(\"/{task_id}\", response_model=TaskStatusResponse)
+@router.get("/{task_id}", response_model=TaskStatusResponse)
 async def get_task_status(task_id: int, user: dict = Depends(get_current_user)):
     requester = user.get("user_id") or ""
     role = user.get("role") or "external"
@@ -240,12 +246,34 @@ async def get_task_status(task_id: int, user: dict = Depends(get_current_user)):
         task = repo.get_task(task_id, requester=requester if role != "internal" else None)
         if task is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+
+        events = repo.get_events(task_id)
+        artifacts = repo.get_artifacts(task_id)
+
         return TaskStatusResponse(
             id=task.id,
             title=task.title,
             status=task.status,
             created_at=task.created_at,
             requester=task.requester or "",
+            events=[
+                TaskEventSchema(
+                    id=e.id,
+                    event_type=e.event_type,
+                    event_metadata=e.event_metadata,
+                    created_at=e.created_at,
+                )
+                for e in events
+            ],
+            artifacts=[
+                TaskArtifactSchema(
+                    id=a.id,
+                    format=a.format,
+                    path=a.path,
+                    created_at=a.created_at,
+                )
+                for a in artifacts
+            ],
         )
 
 
