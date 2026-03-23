@@ -106,7 +106,7 @@ Plans:
 **Plans**: 3 plans
 - [x] 05-03-PLAN.md — 整合持久化資料模型與資料庫
 - [x] 05-04-PLAN.md — 擴充 API 回傳詳細歷史與產出資訊
-- [ ] 05-05-PLAN.md — 建立外部 Web UI 歷史頁面
+- [x] 05-05-PLAN.md — 建立外部 Web UI 歷史頁面
 
 ## Progress
 
