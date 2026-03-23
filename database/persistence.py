@@ -1,33 +1,23 @@
-import sqlite3
-import os
+import json
+from pipeline.queue.database import get_session
+from pipeline.queue.repository import TaskRepository
 
-def get_db_connection(db_path="database.db"):
-    conn = sqlite3.connect(db_path)
-    conn.execute("PRAGMA journal_mode=WAL;")
-    conn.row_factory = sqlite3.Row
-    return conn
+def log_task_event(task_id: int, event_type: str, metadata: str | dict | None = None):
+    """將任務事件紀錄至統一資料庫。"""
+    with get_session() as session:
+        repo = TaskRepository(session)
+        if isinstance(metadata, str):
+            try:
+                metadata_dict = json.loads(metadata)
+            except json.JSONDecodeError:
+                metadata_dict = {"raw": metadata}
+        else:
+            metadata_dict = metadata
 
-def init_db(db_path="database.db"):
-    conn = get_db_connection(db_path)
-    with open("database/schema.sql", "r") as f:
-        conn.executescript(f.read())
-    conn.commit()
-    conn.close()
+        repo.add_event(task_id, event_type, metadata_dict)
 
-def log_task_event(task_id, event_type, metadata, db_path="database.db"):
-    conn = get_db_connection(db_path)
-    conn.execute(
-        "INSERT INTO task_events (task_id, event_type, metadata) VALUES (?, ?, ?)",
-        (task_id, event_type, metadata),
-    )
-    conn.commit()
-    conn.close()
-
-def register_artifact(task_id, format, path, db_path="database.db"):
-    conn = get_db_connection(db_path)
-    conn.execute(
-        "INSERT INTO task_artifacts (task_id, format, path) VALUES (?, ?, ?)",
-        (task_id, format, path),
-    )
-    conn.commit()
-    conn.close()
+def register_artifact(task_id: int, format: str, path: str):
+    """將任務產出紀錄至統一資料庫。"""
+    with get_session() as session:
+        repo = TaskRepository(session)
+        repo.add_artifact(task_id, format, path)

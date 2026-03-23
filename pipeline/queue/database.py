@@ -47,7 +47,7 @@ def create_db_and_tables(engine=None):
     if engine is None:
         engine = get_engine()
     # 確保 models 已被載入
-    from pipeline.queue.models import Task, StageTask  # noqa: F401
+    from pipeline.queue.models import Task, StageTask, TaskEvent, TaskArtifact  # noqa: F401
     from api.models import ApiKey, RefreshToken, User, Identity  # noqa: F401
     SQLModel.metadata.create_all(engine)
 
