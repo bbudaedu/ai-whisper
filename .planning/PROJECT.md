@@ -40,7 +40,7 @@ FaYin 是一套語音處理平台，將現有的 Whisper 語音轉錄能力 API 
 
 **後端 API 化**
 - [x] RESTful API 端點：建立任務、查詢狀態、取消任務、下載結果（Validated in Phase 02）
-- [ ] Webhook / Email 完成通知
+- [x] Webhook / Email 完成通知 (Validated in Phase 03)
 - [ ] 說話者辨識標註（Speaker A/B/C/D）
 
 **外部客戶端 Web UI**
@@ -115,4 +115,4 @@ FaYin 是一套語音處理平台，將現有的 Whisper 語音轉錄能力 API 
 | 內部任務優先 | 確保內部工作流不被外部任務影響 | — Pending |
 
 ---
-*Last updated: 2026-03-22 after Phase 03 completion*
+*Last updated: 2026-03-23 after Phase 03 completion*
