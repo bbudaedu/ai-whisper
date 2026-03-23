@@ -1,5 +1,6 @@
 """Task queue repository — DB 存取與原子操作。"""
 import logging
+import json
 from datetime import datetime
 from typing import Optional
 import hashlib
