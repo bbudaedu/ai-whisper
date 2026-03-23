@@ -22,7 +22,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 ## Phase Details
 
 ### Phase 1: 任務佇列與排程基礎
-**Goal**: 使用者提交的任務可被佇列化與分段處理，在單 GPU 與內部優先權下穩定執行且不破壞既有內部流程
+**Goal**: 使用者提交任務後可被佇列化與分段處理，在單 GPU 與內部優先權下穩定執行且不破壞既有內部流程
 **Depends on**: Nothing (first phase)
 **Requirements**: QUEUE-01, QUEUE-02, QUEUE-03, QUEUE-04, QUEUE-05
 **Success Criteria** (what must be TRUE):
@@ -94,7 +94,7 @@ Plans:
 **Plans:** 2/2 plans complete
 Plans:
 - [x] 04-01-PLAN.md — Speaker Diarization Module
-- [ ] 04-02-PLAN.md — LLM Proofreading with RAG
+- [x] 04-02-PLAN.md — LLM Proofreading with RAG
 
 ### Phase 5: 長期保存與歷史查詢
 **Goal**: 任務與檔案可長期保存並可持續查詢
@@ -103,7 +103,10 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. 使用者可在任務列表中查詢歷史任務，即使完成很久仍可存取狀態與紀錄。
   2. 使用者可在任意時間下載先前任務的輸出成果與原始音檔。
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 05-03-PLAN.md — 整合持久化資料模型與資料庫
+- [ ] 05-04-PLAN.md — 擴充 API 回傳詳細歷史與產出資訊
+- [ ] 05-05-PLAN.md — 建立外部 Web UI 歷史頁面
 
 ## Progress
 
@@ -117,5 +120,5 @@ Phases execute in numeric order: 1 → 2 → 02.1 → 3 → 4 → 5
 | 02.1. 新增外部使用者登入後端 | 6/6 | Complete   | 2026-03-22 |
 | 3. 外部 Web UI 與提交流程 | 4/6 | In progress | - |
 | 4. 校對增強與說話者標註 | 0/2 | Complete    | 2026-03-22 |
-| 5. 長期保存與歷史查詢 | 0/TBD | Not started | - |
+| 5. 長期保存與歷史查詢 | 0/3 | In progress | - |
 - [x] Phase 05-02: Integrate Task Persistence
