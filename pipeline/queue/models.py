@@ -49,7 +49,7 @@ class TaskEvent(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     task_id: int = Field(index=True, foreign_key="tasks.id")
     event_type: str
-    metadata: Optional[str] = Field(default=None)  # 儲存 JSON string
+    event_metadata: Optional[str] = Field(default=None)  # 儲存 JSON string
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class TaskArtifact(SQLModel, table=True):

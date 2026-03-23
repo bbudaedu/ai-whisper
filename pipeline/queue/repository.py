@@ -452,7 +452,7 @@ class TaskRepository:
         event = TaskEvent(
             task_id=task_id,
             event_type=event_type,
-            metadata=metadata_str,
+            event_metadata=metadata_str,
         )
         self.session.add(event)
         self.session.commit()
