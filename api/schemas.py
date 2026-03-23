@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional, List
 
 from pydantic import BaseModel, EmailStr
 
@@ -30,12 +31,28 @@ class TaskCreateResponse(BaseModel):
     created_at: datetime
 
 
+class TaskEventSchema(BaseModel):
+    id: int
+    event_type: str
+    event_metadata: Optional[str] = None
+    created_at: datetime
+
+
+class TaskArtifactSchema(BaseModel):
+    id: int
+    format: str
+    path: str
+    created_at: datetime
+
+
 class TaskStatusResponse(BaseModel):
     id: int
     title: str
     status: TaskStatus
     created_at: datetime
     requester: str
+    events: List[TaskEventSchema] = []
+    artifacts: List[TaskArtifactSchema] = []
 
 
 class TaskCancelResponse(BaseModel):
