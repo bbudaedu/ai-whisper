@@ -50,8 +50,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Storage (STOR)
 
-- [ ] **STOR-01**: 音檔與輸出成果永久保留
-- [ ] **STOR-02**: 任務紀錄永久保存
+- [x] **STOR-01**: 音檔與輸出成果永久保留
+- [x] **STOR-02**: 任務紀錄永久保存
 
 ## v2 Requirements
 
@@ -115,8 +115,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UI-07 | Phase 3 | Complete |
 | NOTF-01 | Phase 3 | Complete |
 | NOTF-02 | Phase 3 | Complete |
-| STOR-01 | Phase 5 | Pending |
-| STOR-02 | Phase 5 | Pending |
+| STOR-01 | Phase 5 | Complete |
+| STOR-02 | Phase 5 | Complete |
 
 **Coverage:**
 - v1 requirements: 21 total
