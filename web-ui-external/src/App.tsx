@@ -7,6 +7,7 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import SubmitTask from './pages/SubmitTask'
 import TaskTracker from './pages/TaskTracker'
+import TaskHistory from './pages/TaskHistory'
 import Playlists from './pages/Playlists'
 import Settings from './pages/Settings'
 import Navigation from './components/Navigation'
@@ -26,6 +27,9 @@ function PageTitle() {
         break;
       case '/track':
         setTitle('任務追蹤');
+        break;
+      case '/history':
+        setTitle('歷史記錄');
         break;
       case '/playlists':
         setTitle('播放清單');

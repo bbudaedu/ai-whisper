@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, PlusCircle, List, PlaySquare, Settings, LogOut, FileAudio } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, List, History, PlaySquare, Settings, LogOut, FileAudio } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 
 export const Navigation: React.FC<{
@@ -14,6 +14,7 @@ export const Navigation: React.FC<{
     { path: '/', label: '總覽', icon: LayoutDashboard, exact: true },
     { path: '/submit', label: '提交任務', icon: PlusCircle },
     { path: '/track', label: '任務追蹤', icon: List },
+    { path: '/history', label: '歷史記錄', icon: History },
     { path: '/playlists', label: '播放清單', icon: PlaySquare },
     { path: '/settings', label: '設定', icon: Settings },
   ];

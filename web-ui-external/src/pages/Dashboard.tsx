@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusCircle, FileAudio, LayoutDashboard } from 'lucide-react';
+import { PlusCircle, FileAudio, LayoutDashboard, History } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -19,13 +19,22 @@ export const Dashboard: React.FC = () => {
         尚未建立任何任務，開始提交音檔或 YouTube 連結。
       </p>
 
-      <button
-        onClick={() => navigate('/submit')}
-        className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-sm"
-      >
-        <PlusCircle className="w-5 h-5" />
-        提交任務
-      </button>
+      <div className="flex flex-wrap gap-4 justify-center">
+        <button
+          onClick={() => navigate('/submit')}
+          className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-sm"
+        >
+          <PlusCircle className="w-5 h-5" />
+          提交任務
+        </button>
+        <button
+          onClick={() => navigate('/history')}
+          className="flex items-center gap-2 px-6 py-3 bg-white dark:bg-[#161b22] border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-200 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm"
+        >
+          <History className="w-5 h-5" />
+          查看歷史
+        </button>
+      </div>
 
       {/* Placeholder for future recent tasks / quick stats */}
       <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl opacity-50 pointer-events-none">
