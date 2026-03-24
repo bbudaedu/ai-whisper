@@ -13,11 +13,12 @@
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: 任務佇列與排程基礎** - 以可持久化佇列與單 GPU 排程穩定現有流程
-- [ ] **Phase 2: 對外 API 與認證** - 提供安全的任務建立/查詢/取消/下載 API
+- [x] **Phase 2: 對外 API 與認證** - 提供安全的任務建立/查詢/取消/下載 API
 - [x] **Phase 02.1: 新增外部使用者登入後端：Email/Password、Google OAuth、使用者與憑證儲存、token 交換與刷新** (INSERTED)
-- [ ] **Phase 3: 外部 Web UI 與提交流程** - mobile-first UI 讓外部使用者提交與追蹤任務
+- [x] **Phase 3: 外部 Web UI 與提交流程** - mobile-first UI 讓外部使用者提交與追蹤任務
 - [x] **Phase 4: 校對增強與說話者標註** - 提升品質與講義輔助校對 (completed 2026-03-22)
-- [ ] **Phase 5: 長期保存與歷史查詢** - 任務與檔案永久保留
+- [x] **Phase 5: 長期保存與歷史查詢** - 任務與檔案永久保留
+- [ ] **Phase 6: 里程碑缺口修復** - 修正 API 路徑、統一格式名稱與狀態枚舉、同步文件
 
 ## Phase Details
 
@@ -42,13 +43,14 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. 使用者可透過 API 查詢任務狀態（pending/running/done/failed）。
   3. 使用者可取消尚未完成的任務，且狀態立即反映為取消。
   4. 使用者可透過 API 下載結果檔案，未授權請求會被拒絕。
-**Plans**: 6 plans
+**Plans**: 6/6 plans complete
 - [x] 02-01-PLAN.md — Models update and Wave 0 Test Stubs
 - [x] 02-02-PLAN.md — Auth API Key Exchange
 - [x] 02-03-PLAN.md — Task Submission API
 - [x] 02-04-PLAN.md — Task Query and Cancellation API
 - [x] 02-05-PLAN.md — Task Result Download API
 - [x] 02-06-PLAN.md — Human Verification
+(completed 2026-03-21)
 
 ### Phase 02.1: 新增外部使用者登入後端：Email/Password、Google OAuth、使用者與憑證儲存、token 交換與刷新 (INSERTED)
 
@@ -64,7 +66,8 @@ Plans:
 - [x] 02.1-04-PLAN.md — Google OAuth Login Integration
 - [x] 02.1-05-PLAN.md — Test cases for Auth Endpoints
 - [x] 02.1-06-PLAN.md — Human Verification for Phase 02.1
- (completed 2026-03-22)
+(completed 2026-03-22)
+
 ### Phase 3: 外部 Web UI 與提交流程
 **Goal**: 外部使用者可在 mobile-first UI 登入、提交與追蹤任務，並取得結果與通知
 **Depends on**: Phase 02.1
@@ -75,13 +78,14 @@ Plans:
   3. 使用者可在 UI 即時查看任務狀態與進度，並在完成後收到 Email 通知。
   4. 使用者可從 UI 下載多格式結果（txt, srt, word, excel, json）。
   5. 使用者可管理播放清單追蹤狀態，新的集數會自動排入任務清單並可在 UI 看到。
-**Plans**: 6 plans
+**Plans**: 6/6 plans complete
 - [x] 03-01-PLAN.md — Scaffold web-ui-external project
 - [x] 03-02-PLAN.md — Setup AuthContext and Login UI
 - [x] 03-03-PLAN.md — Build Responsive Navigation and Dashboard
 - [x] 03-04-PLAN.md — Build Task Submission Form
 - [x] 03-05-PLAN.md — Build Task Tracker with Polling
 - [x] 03-06-PLAN.md — Build Playlist Manager and Settings
+(completed 2026-03-24)
 
 ### Phase 4: 校對增強與說話者標註
 **Goal**: 提升轉錄品質並支援講義輔助校對與說話者標註
@@ -95,6 +99,7 @@ Plans:
 Plans:
 - [x] 04-01-PLAN.md — Speaker Diarization Module
 - [x] 04-02-PLAN.md — LLM Proofreading with RAG
+(completed 2026-03-22)
 
 ### Phase 5: 長期保存與歷史查詢
 **Goal**: 任務與檔案可長期保存並可持續查詢
@@ -103,22 +108,35 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. 使用者可在任務列表中查詢歷史任務，即使完成很久仍可存取狀態與紀錄。
   2. 使用者可在任意時間下載先前任務的輸出成果與原始音檔。
-**Plans**: 3 plans
+**Plans**: 4/4 plans complete
 - [x] 05-03-PLAN.md — 整合持久化資料模型與資料庫
 - [x] 05-04-PLAN.md — 擴充 API 回傳詳細歷史與產出資訊
 - [x] 05-05-PLAN.md — 建立外部 Web UI 歷史頁面
+- [x] 05-06-PLAN.md — 修補驗證缺口（路由註冊與下載 API 增強）
+(completed 2026-03-24)
+
+### Phase 6: 里程碑缺口修復
+**Goal**: 修復 v1.0 稽核發現的整合斷鏈與文件不同步問題
+**Depends on**: Phase 5
+**Requirements**: QUEUE-01 to STOR-02 (maintenance)
+**Success Criteria** (what must be TRUE):
+  1. 前端歷史頁面與下載按鈕 API 路徑正確且可成功獲取資料。
+  2. 下載 API 支援 frontend 傳送的 word/excel 並正確對應至 docx/xlsx。
+  3. 前端 UI 狀態標籤與後端 TaskStatus 完全一致。
+  4. REQUIREMENTS.md 與 PROJECT.md 反映最新實作進度。
+**Plans**: 1 plan
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 02.1 → 3 → 4 → 5
+Phases execute in numeric order: 1 → 2 → 02.1 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. 任務佇列與排程基礎 | 6/6 | Complete | 2026-03-21 |
-| 2. 對外 API 與認證 | 0/6 | Not started | - |
+| 2. 對外 API 與認證 | 6/6 | Complete | 2026-03-21 |
 | 02.1. 新增外部使用者登入後端 | 6/6 | Complete   | 2026-03-22 |
-| 3. 外部 Web UI 與提交流程 | 4/6 | In progress | - |
-| 4. 校對增強與說話者標註 | 0/2 | Complete    | 2026-03-22 |
-| 5. 長期保存與歷史查詢 | 2/3 | In Progress|  |
-- [x] Phase 05-02: Integrate Task Persistence
+| 3. 外部 Web UI 與提交流程 | 6/6 | Complete | 2026-03-24 |
+| 4. 校對增強與說話者標註 | 2/2 | Complete    | 2026-03-22 |
+| 5. 長期保存與歷史查詢 | 4/4 | Complete | 2026-03-24 |
+| 6. 里程碑缺口修復 | 0/1 | Pending | - |

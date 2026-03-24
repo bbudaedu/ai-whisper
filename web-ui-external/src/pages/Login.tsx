@@ -22,13 +22,23 @@ export const Login: React.FC = () => {
 
   // Initialize Google Identity Services
   useEffect(() => {
+    const googleClientId = '536512147212-quv799jtubtudr2hg591q437vdkth5ja.apps.googleusercontent.com';
+
     const initGoogleOAuth = () => {
       if (window.google?.accounts?.id) {
         window.google.accounts.id.initialize({
-          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || 'dummy-client-id-for-dev.apps.googleusercontent.com',
-          callback: handleGoogleCallback,
-          auto_select: false,
-          cancel_on_tap_outside: true
+          client_id: googleClientId,
+          ux_mode: 'popup',
+          callback: async (response: any) => {
+            try {
+              setIsLoading(true);
+              setError('');
+              await loginWithGoogle(response.credential);
+            } catch (err: any) {
+              setError(err.message || 'Google 登入失敗');
+              setIsLoading(false);
+            }
+          }
         });
 
         window.google.accounts.id.renderButton(
@@ -36,7 +46,6 @@ export const Login: React.FC = () => {
           { theme: 'outline', size: 'large', width: '100%', text: 'continue_with' }
         );
       } else {
-        // Retry if script hasn't loaded yet
         setTimeout(initGoogleOAuth, 100);
       }
     };
@@ -44,17 +53,6 @@ export const Login: React.FC = () => {
     initGoogleOAuth();
   }, []);
 
-  const handleGoogleCallback = async (response: any) => {
-    try {
-      setIsLoading(true);
-      setError('');
-      await loginWithGoogle(response.credential);
-      // Navigation is handled by the useEffect above
-    } catch (err: any) {
-      setError(err.message || 'Google 登入失敗，請稍後再試。');
-      setIsLoading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

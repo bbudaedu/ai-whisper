@@ -81,7 +81,20 @@ async def download_task_results(
 
     if format:
         normalized = format.lower().lstrip('.')
-        requested_suffix = f".{normalized}"
+        # Support aliases for word/excel
+        format_map = {
+            "word": ".docx",
+            "excel": ".xlsx",
+            "docx": ".docx",
+            "xlsx": ".xlsx",
+            "txt": ".txt",
+            "srt": ".srt",
+            "vtt": ".vtt",
+            "json": ".json",
+            "tsv": ".tsv",
+        }
+        requested_suffix = format_map.get(normalized, f".{normalized}")
+
         if requested_suffix not in ALLOWED_SUFFIXES:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported format")
 

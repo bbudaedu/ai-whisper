@@ -25,11 +25,6 @@ yt_whisper_output/
 # Caches
 lecture_cache.txt
 
-# Agent framework
-# We only ignore the logs and caches inside .agent, but keep the skills/workflows searchable.
-.agent/logs/
-.agent/cache/
-
 # Sensitive
 cookies.txt
 
@@ -46,3 +41,4 @@ cookies.txt
 *.txt
 !requirements.txt
 nocturne_memory/
+node_modules

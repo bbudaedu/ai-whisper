@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "react-router-dom": "^7.13.1"
+  },
+  "devDependencies": {
+    "date-fns": "^4.1.0"
+  }
+}

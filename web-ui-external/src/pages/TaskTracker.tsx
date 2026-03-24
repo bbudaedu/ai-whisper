@@ -5,7 +5,7 @@ import { usePolling } from '../hooks/usePolling';
 interface TaskRecord {
   id: string;
   url: string;
-  status: 'pending' | 'downloading' | 'processing' | 'done' | 'error';
+  status: 'queued' | 'pending' | 'running' | 'downloading' | 'processing' | 'done' | 'failed' | 'canceled';
   title?: string;
   created_at: string;
   updated_at: string;
@@ -13,7 +13,7 @@ interface TaskRecord {
 }
 
 export default function TaskTracker() {
-  const { data: tasksDict, loading, error, manualRefresh } = usePolling<Record<string, TaskRecord>>('/tasks', 10000);
+  const { data: tasksDict, loading, error, manualRefresh } = usePolling<Record<string, TaskRecord>>('tasks', 10000);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const tasks = useMemo(() => {
@@ -36,16 +36,20 @@ export default function TaskTracker() {
 
   const getStatusBadge = (status: TaskRecord['status']) => {
     switch (status) {
+      case 'queued' as any:
       case 'pending':
         return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"><Clock className="w-3.5 h-3.5" /> 等待中</span>;
       case 'downloading':
         return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"><RefreshCw className="w-3.5 h-3.5 animate-spin" /> 下載中</span>;
       case 'processing':
+      case 'running' as any:
         return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"><RefreshCw className="w-3.5 h-3.5 animate-spin" /> 處理中</span>;
       case 'done':
         return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"><CheckCircle className="w-3.5 h-3.5" /> 已完成</span>;
-      case 'error':
-        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"><XCircle className="w-3.5 h-3.5" /> 錯誤</span>;
+      case 'failed' as any:
+        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"><XCircle className="w-3.5 h-3.5" /> 失敗</span>;
+      case 'canceled' as any:
+        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400"><XCircle className="w-3.5 h-3.5" /> 已取消</span>;
       default:
         return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">未知</span>;
     }
@@ -68,7 +72,8 @@ export default function TaskTracker() {
 
   const downloadUrl = (taskId: string, format?: string) => {
     const baseUrl = import.meta.env.VITE_API_URL || '/api';
-    const url = `${baseUrl}/tasks/${taskId}/download`;
+    const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    const url = `${normalizedBaseUrl}/tasks/${taskId}/download`;
     return format ? `${url}?format=${format}` : url;
   };
 
@@ -121,7 +126,7 @@ export default function TaskTracker() {
                 {tasks.map((task) => {
                   const isExpanded = expandedRows.has(task.id);
                   const isDone = task.status === 'done';
-                  const isError = task.status === 'error';
+                  const isError = task.status === 'failed' || task.status === 'canceled';
 
                   return (
                     <React.Fragment key={task.id}>

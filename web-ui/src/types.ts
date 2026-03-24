@@ -6,6 +6,13 @@ export interface EpisodeStatus {
     proofread_done: boolean;
     report_done: boolean;
     processed_at?: string;
+    notebooklm_output?: {
+        mindmap?: boolean;
+        presentation?: boolean;
+        summary?: boolean;
+        infographic_standard?: boolean;
+        infographic_compact?: boolean;
+    };
 }
 
 export interface PlaylistStats {
@@ -29,6 +36,13 @@ export interface VideoInfo {
     processed_at: string;
     proofread: boolean;
     playlist_id?: string;
+    notebooklm_output?: {
+        mindmap?: boolean;
+        presentation?: boolean;
+        summary?: boolean;
+        infographic_standard?: boolean;
+        infographic_compact?: boolean;
+    };
 }
 
 export interface PlaylistData {
@@ -54,6 +68,15 @@ export interface PlaylistData {
     videos: VideoInfo[];
 }
 
+export interface NotebookLMStatus {
+    total_quota: number;
+    used_quota: number;
+    remaining_quota: number;
+    queue_size: number;
+    active_tasks: number;
+    last_run?: string;
+}
+
 export interface GlobalStats {
     total_playlists: number;
     active_playlists: number;
@@ -64,6 +87,7 @@ export interface GlobalStats {
 export interface DashboardData {
     playlists: PlaylistData[];
     global_stats: GlobalStats;
+    notebooklm?: NotebookLMStatus;
 }
 
 export interface EpisodeRecord {
@@ -74,3 +98,4 @@ export interface EpisodeRecord {
     processed_at?: string;
     [key: string]: unknown;
 }
+

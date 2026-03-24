@@ -46,18 +46,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const login = async (email: string, password?: string) => {
-    // Phase 02.1 specifies Email/Password token exchange via /api/auth/token
-    // For password auth, it uses x-api-key or standard form data depending on backend config
-    // In our spec, we pass x-api-key for Email/Password if password is provided
     try {
-      const response = await client.post('/auth/token', null, {
-        headers: password ? { 'x-api-key': password } : {}
+      const response = await client.post('/auth/login', {
+        email,
+        password
       });
 
-      const { access_token } = response.data;
+      const { access_token, refresh_token } = response.data;
       if (!access_token) throw new Error('No access token received');
 
       localStorage.setItem('auth_token', access_token);
+      if (refresh_token) {
+        localStorage.setItem('refresh_token', refresh_token);
+      }
 
       // We would ideally get user details from the token or another endpoint
       // For now, mock it based on email
@@ -74,24 +75,33 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const loginWithGoogle = async (credential: string) => {
     try {
-      // D-05: Google OAuth via GIS SDK, token exchange with backend
-      const response = await client.post('/auth/google', { token: credential });
+      // Send the credential to the backend using form encoding
+      const params = new URLSearchParams();
+      params.append('credential', credential);
 
-      const { access_token } = response.data;
+      const response = await client.post('/auth/google/login', params, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      });
+
+      const { access_token, refresh_token } = response.data;
       if (!access_token) throw new Error('No access token received');
 
       localStorage.setItem('auth_token', access_token);
+      if (refresh_token) {
+        localStorage.setItem('refresh_token', refresh_token);
+      }
 
-      // Decode JWT to get user info, or get from backend response
-      // Mocking for now as the backend should ideally return this
-      const userData = { email: 'google-user@example.com', role: 'user' };
+      // In a real app, we might get user info from the token or a separate endpoint
+      const userData = { email: 'google-user', role: 'external' };
       localStorage.setItem('auth_user', JSON.stringify(userData));
 
       setIsAuthenticated(true);
       setUser(userData);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Google login failed', error);
-      throw error;
+      throw new Error(error.response?.data?.detail || 'Google 登入失敗');
     }
   };
 

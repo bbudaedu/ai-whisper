@@ -11,6 +11,24 @@ def test_retry_backoff(db_session):
     assert delay1 == 10.0
 
 
+def test_backoff_max_cap():
+    """退避延遲不超過 max_delay。"""
+    from pipeline.queue.backoff import calculate_backoff
+
+    delay = calculate_backoff(10, base_delay=5.0, max_delay=300.0, jitter=False)
+    assert delay == 300.0
+
+
+def test_should_retry():
+    """retry_count 小於 max_retries 才可重試。"""
+    from pipeline.queue.backoff import should_retry
+
+    assert should_retry(0, 3) is True
+    assert should_retry(2, 3) is True
+    assert should_retry(3, 3) is False
+    assert should_retry(4, 3) is False
+
+
 def test_retry_count_incremented(db_session):
     """重試後 retry_count 加 1。"""
     from pipeline.queue.repository import TaskRepository

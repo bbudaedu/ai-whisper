@@ -68,21 +68,19 @@ def login(req: LoginRequest):
     return Token(access_token=access_token, refresh_token=refresh_token_raw)
 
 
-@router.get("/google/login")
-async def google_login(request: Request, redirect_uri: str | None = None):
-    callback_url = redirect_uri or str(request.url_for("google_callback"))
-    return await oauth.google.authorize_redirect(request, callback_url)
+GOOGLE_REDIRECT_URI = os.environ.get(
+    "GOOGLE_REDIRECT_URI",
+    "https://fayi.budaedu.dpdns.org/api/auth/google/callback",
+)
 
 
-@router.get("/google/callback", response_model=Token, name="google_callback")
-async def google_callback(request: Request):
-    token = await oauth.google.authorize_access_token(request)
-    id_token = token.get("id_token")
-    if not id_token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing Google ID token")
+def _process_google_id_token(id_token: str) -> Token:
     client_id = os.environ.get("GOOGLE_CLIENT_ID")
     if not client_id:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Google OAuth not configured")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Google OAuth not configured",
+        )
     try:
         id_info = google_id_token.verify_oauth2_token(
             id_token,
@@ -90,11 +88,17 @@ async def google_callback(request: Request):
             audience=client_id,
         )
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Google ID token") from exc
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid Google ID token",
+        ) from exc
     email = id_info.get("email")
     google_sub = id_info.get("sub")
     if not email or not google_sub:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Google account missing profile")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Google account missing profile",
+        )
     name = id_info.get("name") or ""
     avatar_url = id_info.get("picture") or ""
     with get_session() as session:
@@ -106,7 +110,9 @@ async def google_callback(request: Request):
             avatar_url=avatar_url,
         )
         if user is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
+            )
         payload = {"user_id": str(user.user_id), "role": user.role}
         access_token = create_access_token(payload)
         refresh_token_raw = secrets.token_urlsafe(48)
@@ -117,6 +123,33 @@ async def google_callback(request: Request):
             expires_at=refresh_token_expiry(),
         )
     return Token(access_token=access_token, refresh_token=refresh_token_raw)
+
+
+@router.api_route("/google/login", methods=["GET", "POST"])
+async def google_login(request: Request, redirect_uri: str | None = None):
+    if request.method == "POST":
+        form_data = await request.form()
+        credential = form_data.get("credential")
+        if not credential:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Missing Google credential",
+            )
+        return _process_google_id_token(credential)
+
+    callback_url = redirect_uri or GOOGLE_REDIRECT_URI
+    return await oauth.google.authorize_redirect(request, callback_url)
+
+
+@router.get("/google/callback", response_model=Token, name="google_callback")
+async def google_callback(request: Request):
+    token = await oauth.google.authorize_access_token(request)
+    id_token = token.get("id_token")
+    if not id_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing Google ID token"
+        )
+    return _process_google_id_token(id_token)
 
 
 @router.post("/refresh", response_model=Token)

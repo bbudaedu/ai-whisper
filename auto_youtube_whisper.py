@@ -12,6 +12,7 @@ YouTube 播放清單自動追蹤 + Whisper 辨識 + Gemini 校對 + Email 通知
 
 import time
 import os
+import torch
 import sys
 import re
 import json
@@ -771,14 +772,8 @@ def main():
     )
     args = parser.parse_args()
 
-    # 確保不會有多個行程同時使用 GPU（與 auto_meeting_process.py 共用鎖）
     # Dry run 模式不需要 GPU 鎖
     lock_fd = None
-    if not args.dry_run:
-        lock_fd = acquire_gpu_lock()
-        if lock_fd is None:
-            print("GPU 被其他行程佔用中（可能是月會聽打或另一個 Whisper 行程），本次跳過。")
-            return
 
     try:
         logger.info("=" * 60)
@@ -798,6 +793,14 @@ def main():
             overall_success = 0
             overall_fail = 0
             
+            # === GPU 互斥鎖：確保不會與 auto_meeting_process 同時使用 GPU ===
+            if not args.dry_run:
+                lock_fd = acquire_gpu_lock()
+                if lock_fd is None:
+                    logger.info("GPU 被其他行程佔用中，本輪跳過，10 秒後重試...")
+                    time.sleep(10)
+                    continue
+
             # 重新整理清單
             pm = PlaylistManager(config_file=CONFIG_FILE)
             enabled_playlists = pm.get_runnable_playlists()
@@ -918,6 +921,17 @@ def main():
                     current_processed_total = len([v for v in load_processed_videos().values() if v.get("playlist_id") == pl["id"]])
                     pm.update_playlist(pl["id"], {"processed_count": current_processed_total})
 
+            # === 釋放 GPU 鎖：讓其他行程（如月會聽打）有機會在等待期間使用 GPU ===
+            if lock_fd:
+                # 只有在真正拿到鎖的情況下才釋放，並清空模型快取以節省 VRAM
+                global _whisper_model_cache
+                _whisper_model_cache.clear()
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+                
+                release_gpu_lock(lock_fd)
+                lock_fd = None
+
             # 總結一輪
             logger.info("=" * 60)
             logger.info(f"本輪執行完成 - 總成功: {overall_success}, 總失敗: {overall_fail}")
@@ -931,7 +945,8 @@ def main():
 
     finally:
         # 不管正常結束、例外或崩潰還原，都確保 GPU 鎖被釋放
-        release_gpu_lock(lock_fd)
+        if lock_fd:
+            release_gpu_lock(lock_fd)
 
 
 if __name__ == "__main__":

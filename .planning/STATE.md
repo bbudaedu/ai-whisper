@@ -77,3 +77,9 @@ None. Execution paused before Wave 4 (Plans 04 & 05).
 ## Decisions Made
 
 - Integrated artifact registration into scheduler instead of task definitions module to ensure consistent persistence handling.
+
+## Quick Tasks
+
+| Date | Task | Outcome |
+|------|------|---------|
+| 2026-03-24 | LLM Config & Fallback | Successfully updated endpoint to 100.200 and implemented model fallback logic in `api_client.py`. |

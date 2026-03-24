@@ -50,12 +50,33 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+@app.middleware("http")
+async def force_https_middleware(request: Request, call_next):
+    # Fix scheme
+    if request.headers.get("x-forwarded-proto") == "https":
+        request.scope["scheme"] = "https"
+    
+    # Fix host header
+    forwarded_host = request.headers.get("x-forwarded-host")
+    if forwarded_host:
+        new_headers = []
+        for name, value in request.scope["headers"]:
+            if name == b"host":
+                new_headers.append((b"host", forwarded_host.encode("latin-1")))
+            else:
+                new_headers.append((name, value))
+        request.scope["headers"] = new_headers
+        
+    return await call_next(request)
+
 
 SESSION_SECRET_KEY = os.environ.get("SESSION_SECRET_KEY", "insecure-default-secret")
 
 app.add_middleware(
     SessionMiddleware,
     secret_key=SESSION_SECRET_KEY,
+    https_only=True,
+    same_site="lax",
 )
 app.add_middleware(
     CORSMiddleware,
@@ -322,7 +343,7 @@ async def redo_episode(playlist_id: str, video_id: str, req: Request):
         
     info = processed[video_id]
     if playlist_id == "__legacy__":
-        if info.get("playlist_id"):
+        if info.get("playlist_id") and info.get("playlist_id") != "__legacy__":
             raise HTTPException(status_code=400, detail="Video does not belong to __legacy__")
     else:
         if info.get("playlist_id") != playlist_id:
@@ -338,11 +359,12 @@ async def redo_episode(playlist_id: str, video_id: str, req: Request):
     nas_output_base = playlist_manager._config.get("nas_output_base", "/mnt/nas/Whisper_auto_rum/T097V")
     if playlist:
         base_config_output_dir = playlist.get("output_dir", "")
+        prefix = playlist.get("folder_prefix", "T097V")
         if base_config_output_dir:
             target_dir = os.path.join(nas_output_base, base_config_output_dir)
         else:
-            target_dir = nas_output_base
-        prefix = playlist.get("folder_prefix", "T097V")
+            # Match get_playlist_episodes logic: use folder_prefix as sub folder
+            target_dir = os.path.join(nas_output_base, prefix)
     else:
         # Legacy fallback
         target_dir = os.path.join(nas_output_base, "T097V")

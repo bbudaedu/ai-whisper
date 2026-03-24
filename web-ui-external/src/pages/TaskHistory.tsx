@@ -19,7 +19,7 @@ interface TaskArtifact {
 interface TaskRecord {
   id: number;
   title: string;
-  status: 'pending' | 'downloading' | 'processing' | 'done' | 'error' | 'cancelled';
+  status: 'queued' | 'pending' | 'running' | 'downloading' | 'processing' | 'done' | 'failed' | 'canceled';
   created_at: string;
   requester: string;
   events?: TaskEvent[];
@@ -27,7 +27,7 @@ interface TaskRecord {
 }
 
 export default function TaskHistory() {
-  const { data: tasks, loading, error, manualRefresh } = usePolling<TaskRecord[]>('/tasks/history', 30000);
+  const { data: tasks, loading, error, manualRefresh } = usePolling<TaskRecord[]>('tasks/history', 30000);
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
   const toggleRow = (id: number) => {
@@ -42,17 +42,19 @@ export default function TaskHistory() {
 
   const getStatusBadge = (status: TaskRecord['status']) => {
     switch (status) {
+      case 'queued' as any:
       case 'pending':
         return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"><Clock className="w-3.5 h-3.5" /> 等待中</span>;
       case 'downloading':
         return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"><RefreshCw className="w-3.5 h-3.5 animate-spin" /> 下載中</span>;
       case 'processing':
+      case 'running' as any:
         return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"><RefreshCw className="w-3.5 h-3.5 animate-spin" /> 處理中</span>;
       case 'done':
         return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"><CheckCircle className="w-3.5 h-3.5" /> 已完成</span>;
-      case 'error':
-        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"><XCircle className="w-3.5 h-3.5" /> 錯誤</span>;
-      case 'cancelled':
+      case 'failed':
+        return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"><XCircle className="w-3.5 h-3.5" /> 失敗</span>;
+      case 'canceled':
         return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400"><XCircle className="w-3.5 h-3.5" /> 已取消</span>;
       default:
         return <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">未知</span>;
@@ -77,7 +79,8 @@ export default function TaskHistory() {
 
   const downloadUrl = (taskId: number, format?: string) => {
     const baseUrl = import.meta.env.VITE_API_URL || '/api';
-    const url = `${baseUrl}/tasks/${taskId}/download`;
+    const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    const url = `${normalizedBaseUrl}/tasks/${taskId}/download`;
     return format ? `${url}?format=${format}` : url;
   };
 
@@ -200,17 +203,31 @@ export default function TaskHistory() {
 
                                     <div className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-[#161b22] border border-gray-200 dark:border-gray-700 rounded-md shadow-sm">
                                       <span className="text-sm text-gray-600 dark:text-gray-300 mr-1">單獨格式:</span>
-                                      {['txt', 'srt', 'vtt', 'json', 'tsv'].map((format) => (
-                                        <a
-                                          key={format}
-                                          href={downloadUrl(task.id, format)}
-                                          className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 uppercase px-1.5 py-0.5 rounded hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
-                                          onClick={(e) => e.stopPropagation()}
-                                          title={`下載 ${format.toUpperCase()} 格式`}
-                                        >
-                                          {format}
-                                        </a>
-                                      ))}
+                                      {task.artifacts && task.artifacts.length > 0 ? (
+                                        task.artifacts.map((artifact) => (
+                                          <a
+                                            key={artifact.id}
+                                            href={downloadUrl(task.id, artifact.format)}
+                                            className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 uppercase px-1.5 py-0.5 rounded hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
+                                            onClick={(e) => e.stopPropagation()}
+                                            title={`下載 ${artifact.format.toUpperCase()} 格式`}
+                                          >
+                                            {artifact.format}
+                                          </a>
+                                        ))
+                                      ) : (
+                                        ['txt', 'srt', 'vtt', 'json', 'tsv'].map((format) => (
+                                          <a
+                                            key={format}
+                                            href={downloadUrl(task.id, format)}
+                                            className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 uppercase px-1.5 py-0.5 rounded hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
+                                            onClick={(e) => e.stopPropagation()}
+                                            title={`下載 ${format.toUpperCase()} 格式`}
+                                          >
+                                            {format}
+                                          </a>
+                                        ))
+                                      )}
                                     </div>
                                   </div>
                                 </div>

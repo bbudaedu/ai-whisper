@@ -25,7 +25,7 @@ export default function Playlists() {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
-  const { data: playlists, loading, error, manualRefresh } = usePolling<Playlist[]>('/playlists', 10000);
+  const { data: playlists, loading, error, manualRefresh } = usePolling<Playlist[]>('playlists', 10000);
 
   const handleAddPlaylist = async (e: React.FormEvent) => {
     e.preventDefault();

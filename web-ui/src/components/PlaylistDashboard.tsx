@@ -1,9 +1,13 @@
 import { useState } from 'react';
 import {
     ListVideo, CheckCircle, Clock, ChevronDown, ChevronUp,
-    Activity, FileText, Zap, CircleDot
+    Activity, FileText, Zap, CircleDot, Send, FileSearch, Brain, Layout, Image
 } from 'lucide-react';
+import axios from 'axios';
 import { DashboardData, PlaylistData, VideoInfo } from '../types';
+import NotebookLMStatsCard from './NotebookLMStatsCard';
+
+const API_BASE = `http://${window.location.hostname}:8002/api`;
 
 function formatTime(isoStr: string): string {
     if (!isoStr) return '—';
@@ -147,7 +151,9 @@ function PlaylistCard({ pl, isExpanded, onToggle }: {
                                     <th className="px-5 py-2.5">影片名稱</th>
                                     <th className="px-5 py-2.5">Whisper</th>
                                     <th className="px-5 py-2.5">校對</th>
+                                    <th className="px-5 py-2.5">NotebookLM</th>
                                     <th className="px-5 py-2.5">時間</th>
+                                    <th className="px-5 py-2.5 text-right">操作</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -162,7 +168,7 @@ function PlaylistCard({ pl, isExpanded, onToggle }: {
                                             <td className="px-5 py-2.5">
                                                 <div className="flex items-center space-x-2">
                                                     <FileText size={14} className="text-[#3B82F6] flex-shrink-0" />
-                                                    <span className="truncate max-w-[180px]" title={v.title}>{v.title}</span>
+                                                    <span className="truncate max-w-[150px]" title={v.title}>{v.title}</span>
                                                 </div>
                                             </td>
                                             <td className="px-5 py-2.5">
@@ -184,8 +190,71 @@ function PlaylistCard({ pl, isExpanded, onToggle }: {
                                                     </span>
                                                 )}
                                             </td>
+                                            <td className="px-5 py-2.5">
+                                                {v.notebooklm_output ? (
+                                                    <div className="flex items-center gap-1.5">
+                                                        {v.notebooklm_output.mindmap && (
+                                                            <a 
+                                                                href={`${API_BASE}/notebooklm/download?episode=${pl.folder_prefix || 'T097V'}${v.title.match(/(\d+)\s*$/)?.[1].padStart(3, '0')}&filename=${pl.folder_prefix || 'T097V'}${v.title.match(/(\d+)\s*$/)?.[1].padStart(3, '0')}_mindmap.md`}
+                                                                target="_blank" rel="noreferrer"
+                                                                className="w-6 h-6 rounded bg-indigo-50 dark:bg-indigo-500/10 text-indigo-500 flex items-center justify-center hover:bg-indigo-100 transition-colors"
+                                                                title="心智圖"
+                                                            >
+                                                                <Brain size={12} />
+                                                            </a>
+                                                        )}
+                                                        {v.notebooklm_output.presentation && (
+                                                            <a 
+                                                                href={`${API_BASE}/notebooklm/download?episode=${pl.folder_prefix || 'T097V'}${v.title.match(/(\d+)\s*$/)?.[1].padStart(3, '0')}&filename=${pl.folder_prefix || 'T097V'}${v.title.match(/(\d+)\s*$/)?.[1].padStart(3, '0')}_presentation.md`}
+                                                                target="_blank" rel="noreferrer"
+                                                                className="w-6 h-6 rounded bg-blue-50 dark:bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-100 transition-colors"
+                                                                title="簡報綱要"
+                                                            >
+                                                                <Layout size={12} />
+                                                            </a>
+                                                        )}
+                                                        {v.notebooklm_output.summary && (
+                                                            <a 
+                                                                href={`${API_BASE}/notebooklm/download?episode=${pl.folder_prefix || 'T097V'}${v.title.match(/(\d+)\s*$/)?.[1].padStart(3, '0')}&filename=${pl.folder_prefix || 'T097V'}${v.title.match(/(\d+)\s*$/)?.[1].padStart(3, '0')}_summary.md`}
+                                                                target="_blank" rel="noreferrer"
+                                                                className="w-6 h-6 rounded bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition-colors"
+                                                                title="影片摘要"
+                                                            >
+                                                                <FileSearch size={12} />
+                                                            </a>
+                                                        )}
+                                                        {(v.notebooklm_output.infographic_standard || v.notebooklm_output.infographic_compact) && (
+                                                            <a 
+                                                                href={`${API_BASE}/notebooklm/download?episode=${pl.folder_prefix || 'T097V'}${v.title.match(/(\d+)\s*$/)?.[1].padStart(3, '0')}&filename=${pl.folder_prefix || 'T097V'}${v.title.match(/(\d+)\s*$/)?.[1].padStart(3, '0')}_infographic_full.md`}
+                                                                target="_blank" rel="noreferrer"
+                                                                className="w-6 h-6 rounded bg-amber-50 dark:bg-amber-500/10 text-amber-600 flex items-center justify-center hover:bg-amber-100 transition-colors"
+                                                                title="資訊圖表"
+                                                            >
+                                                                <Image size={12} />
+                                                            </a>
+                                                        )}
+                                                        {!Object.values(v.notebooklm_output).some(Boolean) && (
+                                                            <span className="text-xs text-slate-300 dark:text-slate-600">無產出</span>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-xs text-slate-300 dark:text-slate-600">—</span>
+                                                )}
+                                            </td>
                                             <td className="px-5 py-2.5 text-xs text-slate-500 font-mono whitespace-nowrap">
                                                 {formatTime(v.processed_at)}
+                                            </td>
+                                            <td className="px-5 py-2.5 text-right">
+                                                <button 
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        axios.post(`${API_BASE}/notebooklm/trigger`, { episode: `${pl.folder_prefix || 'T097V'}${v.title.match(/(\d+)\s*$/)?.[1].padStart(3, '0')}` });
+                                                    }}
+                                                    className="p-1.5 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-indigo-500 transition-colors"
+                                                    title="觸發 NotebookLM 後製"
+                                                >
+                                                    <Send size={14} />
+                                                </button>
                                             </td>
                                         </tr>
                                     ))}
@@ -227,6 +296,8 @@ export default function PlaylistDashboard({ data }: { data: DashboardData | null
 
     return (
         <div className="space-y-6">
+            <NotebookLMStatsCard status={data.notebooklm} />
+            
             {/* KPI Summary Row */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <KpiCard
