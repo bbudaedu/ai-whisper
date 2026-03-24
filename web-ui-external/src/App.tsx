@@ -112,6 +112,7 @@ function AppLayout() {
             {/* Placeholder routes for now */}
             <Route path="/submit" element={<SubmitTask />} />
             <Route path="/track" element={<TaskTracker />} />
+            <Route path="/history" element={<TaskHistory />} />
             <Route path="/playlists" element={<Playlists />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<Navigate to="/" replace />} />

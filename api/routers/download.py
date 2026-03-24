@@ -6,7 +6,7 @@ import zipfile
 from datetime import datetime
 from pathlib import Path
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status, Query
 from fastapi.responses import FileResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
@@ -20,7 +20,7 @@ http_bearer = HTTPBearer(auto_error=False)
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 OUTPUT_BASE = BASE_DIR / "output"
-ALLOWED_SUFFIXES = {".srt", ".txt", ".xlsx", ".docx"}
+ALLOWED_SUFFIXES = {".srt", ".txt", ".xlsx", ".docx", ".vtt", ".json", ".tsv"}
 
 
 def _collect_output_files(output_dir: Path) -> list[Path]:
@@ -45,6 +45,7 @@ async def get_current_user(
 async def download_task_results(
     task_id: int,
     background_tasks: BackgroundTasks,
+    format: str | None = Query(default=None, description="Optional format filter: txt,srt,vtt,json,tsv,docx,xlsx"),
     user: dict = Depends(get_current_user),
 ):
     requester = user.get("user_id") or ""
@@ -77,6 +78,16 @@ async def download_task_results(
 
     if not files or selected_dir is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Output files not found")
+
+    if format:
+        normalized = format.lower().lstrip('.')
+        requested_suffix = f".{normalized}"
+        if requested_suffix not in ALLOWED_SUFFIXES:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported format")
+
+        files = [path for path in files if path.suffix.lower() == requested_suffix]
+        if not files:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Requested format not found")
 
     timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
     zip_name = f"{task.id}_{timestamp}.zip"
