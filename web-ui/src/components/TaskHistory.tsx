@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Clock, FileText, CheckCircle, AlertCircle, Download } from 'lucide-react';
+import { Download } from 'lucide-react';
 
 const API_BASE = `http://${window.location.hostname}:8002/api`;
 
