@@ -7,13 +7,15 @@ FaYin 是一套語音處理平台，將現有的 Whisper 語音轉錄能力 API 
 ## Current State
 
 - **v1.0 (Shipped 2026-03-24)**: 已完成核心基礎設施、API 與 Web UI。
+- **v2.0 (In Progress)**: 建立全系統自動化 E2E 測試框架，確保穩定性與長期維護。
 
 ## Next Milestone Goals (v2.0)
 
+- [ ] **全系統自動化 E2E 測試**: 整合 Playwright 與 Pytest，涵蓋 API、Pipeline 與 Web UI。
 - [ ] **說話者名稱編輯**: 支援將標註的 A/B/C/D 替換為真實人名。
-- [ ] **真實 LLM 校對串接**: 取代目前的模擬實作，串接 OpenAI/Anthropic/Gemini API。
+- [ ] **真實 LLM 校對串接**: 串接 OpenAI/Anthropic/Gemini API 取代模擬實作。
 - [ ] **Webhook 通知**: 支援 API 回調通知外部系統。
-- [ ] **自動摘要**: 基於轉錄內容產出會議/課程重點。
+- [ ] **自動摘要**: 基於轉錄內容產出重點總結。
 
 ## Requirements
 
