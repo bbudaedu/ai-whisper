@@ -11,7 +11,7 @@ progress:
   completed_plans: 26
 ---
 
-# STATE: NotebookLM 後製功能完善
+# STATE: FaYin 語音處理平台 v1.0
 
 ## Current Phase
 
@@ -38,10 +38,10 @@ None. Milestone v1.0 is ready for archiving or final verification.
 
 ## Milestones
 
-- [x] Phase 1: Fork & 擴充 MCP Server（build 通過）
-- [x] Phase 2: Python Pipeline 整合
-- [x] Phase 3: Web UI External (Mobile First)
-- [x] Phase 4: 測試與驗證 (Speaker/Proofreading)
+- [x] Phase 1: 佇列化任務與單 GPU 排程
+- [x] Phase 2: RESTful API 與 JWT 認證
+- [x] Phase 3: Mobile-first Web UI (Email/Google OAuth)
+- [x] Phase 4: 校對增強與說話者標註 (A/B/C/D)
 - [x] Phase 5: 長期保存與歷史查詢
 - [x] Phase 6: 里程碑缺口修復
 

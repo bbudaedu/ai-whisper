@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import os
+import json
 import hashlib
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Any
 
 import jwt
@@ -11,9 +13,22 @@ from fastapi.security import APIKeyHeader, HTTPBearer
 from passlib.context import CryptContext
 
 
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", "15"))
+def _load_config_fallback():
+    config_path = Path(__file__).resolve().parents[1] / "config.json"
+    if config_path.exists():
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}
+
+
+_config_fallback = _load_config_fallback()
+
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
-JWT_SECRET = os.environ.get("JWT_SECRET", "")
+JWT_SECRET = os.environ.get("JWT_SECRET") or _config_fallback.get("jwt_secret", "")
 REFRESH_TOKEN_EXPIRE_DAYS = int(os.environ.get("REFRESH_TOKEN_EXPIRE_DAYS", "30"))
 
 

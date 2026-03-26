@@ -2,6 +2,7 @@ import asyncio
 import json
 import os
 import subprocess
+from datetime import datetime
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.responses import HTMLResponse, StreamingResponse, FileResponse
@@ -11,35 +12,50 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from api.routers.auth import router as auth_router
 from api.routers.download import router as download_router
-from api.routers.tasks import router as tasks_router
+from api.routers.tasks import router as tasks_router, get_current_user
 from pipeline.queue.database import create_db_and_tables, get_session
-from pipeline.queue.models import TaskSource, StageType
+from pipeline.queue.models import TaskSource, StageType, PlaylistRecord
+from sqlalchemy import select, update, delete
 from pipeline.queue.repository import TaskRepository
 from pipeline.queue.scheduler import TaskScheduler
+from pipeline.queue.playlist_sync import PlaylistSyncWorker
 from pipeline.queue.stage_runner import create_initial_stages
 from pipeline.playlist_manager import PlaylistManager
 from pipeline.notebooklm_client import NotebookLMClient
 from pipeline.notebooklm_scheduler import NotebookLMScheduler
 from gpu_lock import is_gpu_busy
 
-# --- Task Queue Scheduler ---
+# --- Background Workers ---
 _scheduler: TaskScheduler | None = None
+_playlist_worker: PlaylistSyncWorker | None = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """FastAPI lifespan: 啟動排程器 + DB 初始化。"""
-    global _scheduler
+    global _scheduler, _playlist_worker
 
     # Startup: 初始化 DB 並啟動排程器
     create_db_and_tables()
 
+    # 確保輸出目錄存在
+    output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
+    os.makedirs(output_dir, exist_ok=True)
+
+    # 1. 啟動任務排程器
     _scheduler = TaskScheduler(
         session_factory=get_session,
         stage_executors=TaskScheduler.build_default_executors(),
         poll_interval=5,
     )
     await _scheduler.start()
+
+    # 2. 啟動播放清單同步 Worker
+    _playlist_worker = PlaylistSyncWorker(
+        session_factory=get_session,
+        sync_interval=600,  # 每 10 分鐘同步一次
+    )
+    await _playlist_worker.start()
 
     yield
 
@@ -48,7 +64,27 @@ async def lifespan(app: FastAPI):
         await _scheduler.stop()
         _scheduler = None
 
+    if _playlist_worker is not None:
+        await _playlist_worker.stop()
+        _playlist_worker = None
+
 app = FastAPI(lifespan=lifespan)
+
+def _get_config_value(key: str, default: str = "") -> str:
+    # 優先環境變數
+    val = os.environ.get(key)
+    if val:
+        return val
+    # 備援 config.json
+    config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                config = json.load(f)
+                return config.get(key.lower(), default)
+        except Exception:
+            pass
+    return default
 
 @app.middleware("http")
 async def force_https_middleware(request: Request, call_next):
@@ -70,7 +106,7 @@ async def force_https_middleware(request: Request, call_next):
     return await call_next(request)
 
 
-SESSION_SECRET_KEY = os.environ.get("SESSION_SECRET_KEY", "insecure-default-secret")
+SESSION_SECRET_KEY = _get_config_value("SESSION_SECRET_KEY", "insecure-default-secret")
 
 app.add_middleware(
     SessionMiddleware,
@@ -165,85 +201,214 @@ class PlaylistReq(BaseModel):
     folder_prefix: str = "T097V"
 
 @app.get("/api/playlists")
-def get_playlists():
-    # Reload config to ensure we have the latest
-    playlist_manager._config = playlist_manager._load_config()
-    return playlist_manager.playlists
+def get_playlists(user: dict = Depends(get_current_user)):
+    requester = user.get("user_id") or ""
+    role = user.get("role") or "external"
+
+    with get_session() as session:
+        if role == "internal":
+            # 內部管理員可以看到所有清單
+            stmt = select(PlaylistRecord)
+        else:
+            # 外部使用者只能看到自己的
+            stmt = select(PlaylistRecord).where(PlaylistRecord.requester == requester)
+
+        db_playlists = session.execute(stmt).scalars().all()
+
+        # 如果資料庫沒有資料，且是 internal，則回退到 config 模式 (Legacy)
+        if not db_playlists and role == "internal":
+            playlist_manager._config = playlist_manager._load_config()
+            playlists = playlist_manager.playlists
+            enriched = []
+            for pl in playlists:
+                item = pl.copy()
+                if "stats" not in item:
+                    item["stats"] = {
+                        "whispered": pl.get("processed_count", 0),
+                        "proofread": 0,
+                        "pending": max(0, pl.get("total_videos", 0) - pl.get("processed_count", 0))
+                    }
+                if "status" not in item:
+                    item["status"] = pl.get("status", "idle")
+                enriched.append(item)
+            return enriched
+
+        return [
+            {
+                "id": pl.id,
+                "name": pl.name,
+                "url": pl.url,
+                "enabled": pl.enabled,
+                "status": pl.status,
+                "stats": {
+                    "whispered": pl.processed_count,
+                    "proofread": 0,
+                    "pending": max(0, pl.total_videos - pl.processed_count)
+                },
+                "total_videos": pl.total_videos,
+                "processed_count": pl.processed_count,
+                "created_at": pl.created_at,
+            }
+            for pl in db_playlists
+        ]
 
 @app.post("/api/playlists")
-def create_playlist(req: PlaylistReq):
-    try:
-        playlist_manager.add_playlist(
-            playlist_id=req.id,
+def create_playlist(req: PlaylistReq, user: dict = Depends(get_current_user)):
+    requester = user.get("user_id") or ""
+
+    with get_session() as session:
+        playlist = PlaylistRecord(
             name=req.name,
             url=req.url,
-            output_dir=req.output_dir,
-            whisper_model=req.whisper_model,
+            requester=requester,
             enabled=req.enabled,
-            schedule=req.schedule,
-            whisper_lang=req.whisper_lang,
-            whisper_prompt=req.whisper_prompt,
-            proofread_prompt=req.proofread_prompt,
-            lecture_pdf=req.lecture_pdf,
-            batch_size=req.batch_size,
-            folder_prefix=req.folder_prefix,
+            status="idle"
         )
-        return {"status": "success"}
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        session.add(playlist)
+        session.commit()
+        session.refresh(playlist)
+        return {"status": "success", "id": playlist.id}
 
 @app.put("/api/playlists/{playlist_id}")
-async def update_playlist_endpoint(playlist_id: str, req: Request):
-    """PATCH-style 更新清單欄位。"""
-    playlist_manager._config = playlist_manager._load_config()
-    if not playlist_manager.get_playlist_by_id(playlist_id):
-        raise HTTPException(status_code=404, detail="Playlist not found")
+async def update_playlist_endpoint(playlist_id: str, req: Request, user: dict = Depends(get_current_user)):
+    """更新清單欄位。"""
+    requester = user.get("user_id") or ""
+    role = user.get("role") or "external"
     data = await req.json()
-    playlist_manager.update_playlist(playlist_id, data)
-    return {"status": "success"}
+
+    with get_session() as session:
+        if playlist_id.isdigit():
+            stmt = select(PlaylistRecord).where(PlaylistRecord.id == int(playlist_id))
+        else:
+            # 支援傳統字串 ID
+            stmt = select(PlaylistRecord).where(PlaylistRecord.url == playlist_id)
+
+        if role != "internal":
+            stmt = stmt.where(PlaylistRecord.requester == requester)
+
+        playlist = session.execute(stmt).scalar_one_or_none()
+        if not playlist:
+            raise HTTPException(status_code=404, detail="Playlist not found")
+
+        for key, value in data.items():
+            if hasattr(playlist, key):
+                setattr(playlist, key, value)
+
+        playlist.updated_at = datetime.utcnow()
+        session.add(playlist)
+        session.commit()
+        return {"status": "success"}
 
 @app.delete("/api/playlists/{playlist_id}")
-def delete_playlist(playlist_id: str):
-    playlist_manager.remove_playlist(playlist_id)
-    return {"status": "success"}
+def delete_playlist(playlist_id: str, user: dict = Depends(get_current_user)):
+    requester = user.get("user_id") or ""
+    role = user.get("role") or "external"
 
+    with get_session() as session:
+        if playlist_id.isdigit():
+            stmt = select(PlaylistRecord).where(PlaylistRecord.id == int(playlist_id))
+        else:
+            stmt = select(PlaylistRecord).where(PlaylistRecord.url == playlist_id)
+
+        if role != "internal":
+            stmt = stmt.where(PlaylistRecord.requester == requester)
+
+        playlist = session.execute(stmt).scalar_one_or_none()
+        if not playlist:
+            raise HTTPException(status_code=404, detail="Playlist not found")
+
+        session.delete(playlist)
+        session.commit()
+        return {"status": "success"}
 
 class ControlReq(BaseModel):
     action: str  # start | pause | resume
 
 @app.post("/api/playlists/{playlist_id}/control")
-def control_playlist(playlist_id: str, req: ControlReq):
+def control_playlist(playlist_id: str, req: ControlReq, user: dict = Depends(get_current_user)):
     """控制單一清單的處理狀態。"""
-    playlist_manager._config = playlist_manager._load_config()
-    playlist = playlist_manager.get_playlist_by_id(playlist_id)
-    if not playlist:
-        raise HTTPException(status_code=404, detail="Playlist not found")
+    requester = user.get("user_id") or ""
+    role = user.get("role") or "external"
 
-    action_map = {
-        "start": "running",
-        "pause": "paused",
-        "resume": "running",
-    }
-    new_status = action_map.get(req.action)
-    if not new_status:
-        raise HTTPException(status_code=400, detail=f"Unknown action: {req.action}")
+    with get_session() as session:
+        if playlist_id.isdigit():
+            stmt = select(PlaylistRecord).where(PlaylistRecord.id == int(playlist_id))
+        else:
+            stmt = select(PlaylistRecord).where(PlaylistRecord.url == playlist_id)
 
-    playlist_manager.set_status(playlist_id, new_status)
-    return {"status": "success", "new_status": new_status}
+        if role != "internal":
+            stmt = stmt.where(PlaylistRecord.requester == requester)
 
-@app.get("/api/playlists/{playlist_id}/episodes")
-def get_playlist_episodes(playlist_id: str):
-    """
-    獲取特定 playlist 的所有處理過的 episodes (與其詳細的實體檔案狀態)。
-    如果是 __legacy__，則拉出無 playlist_id 的清單。
-    """
-    playlist_manager._config = playlist_manager._load_config()
-    playlist = None
-
-    if playlist_id != "__legacy__":
-        playlist = playlist_manager.get_playlist_by_id(playlist_id)
+        playlist = session.execute(stmt).scalar_one_or_none()
         if not playlist:
             raise HTTPException(status_code=404, detail="Playlist not found")
+
+        action_map = {
+            "start": "running",
+            "pause": "paused",
+            "resume": "running",
+        }
+        new_status = action_map.get(req.action)
+        if not new_status:
+            raise HTTPException(status_code=400, detail=f"Unknown action: {req.action}")
+
+        playlist.status = new_status
+        playlist.updated_at = datetime.utcnow()
+        session.add(playlist)
+        session.commit()
+        return {"status": "success", "new_status": new_status}
+
+@app.get("/api/playlists/{playlist_id}/episodes")
+def get_playlist_episodes(playlist_id: str, user: dict = Depends(get_current_user)):
+    """
+    獲取特定 playlist 的所有處理過的 episodes。
+    """
+    requester = user.get("user_id") or ""
+    role = user.get("role") or "external"
+
+    # 數據庫模式 (優先)
+    if playlist_id.isdigit():
+        with get_session() as session:
+            stmt = select(PlaylistRecord).where(PlaylistRecord.id == int(playlist_id))
+            if role != "internal":
+                stmt = stmt.where(PlaylistRecord.requester == requester)
+
+            db_playlist = session.execute(stmt).scalar_one_or_none()
+            if db_playlist:
+                # 根據 URL 或 ID 搜尋任務
+                repo = TaskRepository(session)
+                tasks = repo.get_tasks(requester=requester if role != "internal" else None)
+                playlist_tasks = [t for t in tasks if t.playlist_id == str(db_playlist.id) or t.playlist_id == db_playlist.url]
+
+                return {
+                    "playlist": db_playlist.name,
+                    "episodes": [
+                        {
+                            "id": t.id,
+                            "title": t.title,
+                            "status": t.status,
+                            "created_at": t.created_at,
+                            "video_id": t.video_id
+                        } for t in playlist_tasks
+                    ]
+                }
+
+    # 傳統模式 (Legacy)
+    if role != "internal":
+        return {"playlist": playlist_id, "episodes": [], "message": "Access denied to legacy data"}
+
+    playlist_manager._config = playlist_manager._load_config()
+    playlist = None
+    if playlist_id != "__legacy__":
+        playlist = playlist_manager.get_playlist_by_id(playlist_id)
+
+    # 從 NAS 讀取實體檔案狀態 (原有邏輯)
+    cfg = playlist_manager._load_config()
+    nas_base = cfg.get("nas_output_base", "/mnt/nas/Whisper_auto_rum")
+
+    # 這裡保留原有的 NAS 掃描邏輯，供後台使用
+    data = []
+    # ... (原有掃描邏輯的簡化版或轉發)
 
     json_path = os.path.join(BASE_DIR, "processed_videos.json")
     processed = {}

@@ -8,7 +8,13 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
 
-from api.auth import api_key_header, create_access_token, hash_token, refresh_token_expiry
+from api.auth import (
+    _config_fallback,
+    api_key_header,
+    create_access_token,
+    hash_token,
+    refresh_token_expiry,
+)
 from api.schemas import LoginRequest, RefreshRequest, RevokeRequest, Token
 from pipeline.queue.database import get_session
 from pipeline.queue.repository import TaskRepository
@@ -21,8 +27,9 @@ oauth = OAuth()
 
 oauth.register(
     name="google",
-    client_id=os.environ.get("GOOGLE_CLIENT_ID"),
-    client_secret=os.environ.get("GOOGLE_CLIENT_SECRET"),
+    client_id=os.environ.get("GOOGLE_CLIENT_ID") or _config_fallback.get("google_client_id"),
+    client_secret=os.environ.get("GOOGLE_CLIENT_SECRET")
+    or _config_fallback.get("google_client_secret"),
     server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
     client_kwargs={"scope": "openid email profile"},
 )
@@ -75,7 +82,7 @@ GOOGLE_REDIRECT_URI = os.environ.get(
 
 
 def _process_google_id_token(id_token: str) -> Token:
-    client_id = os.environ.get("GOOGLE_CLIENT_ID")
+    client_id = os.environ.get("GOOGLE_CLIENT_ID") or _config_fallback.get("google_client_id")
     if not client_id:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

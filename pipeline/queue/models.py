@@ -89,3 +89,19 @@ class StageTask(SQLModel, table=True):
     def set_output(self, data: dict) -> None:
         """設定 output_payload（序列化為 JSON）。"""
         self.output_payload = json.dumps(data, ensure_ascii=False)
+
+
+class PlaylistRecord(SQLModel, table=True):
+    __tablename__ = "playlists"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str
+    url: str = Field(index=True)
+    requester: str = Field(index=True)
+    enabled: bool = Field(default=True)
+    status: str = Field(default="idle")  # idle, running, paused
+    total_videos: int = Field(default=0)
+    processed_count: int = Field(default=0)
+    last_synced_at: Optional[datetime] = Field(default=None)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)

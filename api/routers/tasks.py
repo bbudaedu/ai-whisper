@@ -118,9 +118,11 @@ async def create_task(request: Request, user: dict = Depends(get_current_user)):
         form = await request.form()
         task_type = form.get("type")
         source = form.get("source")
-        payload = _parse_payload(form.get("payload"))
+        payload_raw = form.get("payload")
+        payload = _parse_payload(payload_raw)
         output_formats = _parse_output_formats(form.get("output_formats"))
         file = form.get("file")
+        logger.info(f"Received upload task: type={task_type}, payload={payload}")
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported content type")
 
@@ -138,14 +140,16 @@ async def create_task(request: Request, user: dict = Depends(get_current_user)):
         if not hasattr(file, "filename"):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="File required for upload")
         video_id = payload.get("video_id") or getattr(file, "filename", "upload")
-        title = payload.get("title") or getattr(file, "filename", "upload")
+        title = payload.get("title") or getattr(file, "filename", "音檔上傳任務")
         playlist_id = payload.get("playlist_id", "")
     else:
         url = payload.get("url")
         if not url:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing youtube url")
         video_id = _parse_youtube_video_id(url)
-        title = payload.get("title") or video_id or "youtube"
+        title = payload.get("title")
+        if not title:
+            title = f"YouTube 任務 ({video_id})"
         playlist_id = payload.get("playlist_id", "")
 
     if not video_id:
@@ -188,8 +192,9 @@ async def create_task(request: Request, user: dict = Depends(get_current_user)):
         stage = create_initial_stages(session, task)
         if task_type == "upload":
             stage.set_output({"audio_path": audio_path, "episode_dir": episode_dir})
-            session.add(stage)
-            session.commit()
+
+        session.add(stage)
+        session.commit()
 
         logger.info(
             "Task created via API: id=%s type=%s requester=%s formats=%s",

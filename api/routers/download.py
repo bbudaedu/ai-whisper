@@ -6,7 +6,7 @@ import zipfile
 from datetime import datetime
 from pathlib import Path
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status, Query, Request
 from fastapi.responses import FileResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
@@ -33,12 +33,24 @@ def _collect_output_files(output_dir: Path) -> list[Path]:
     return files
 
 
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status, Query, Request
+
+# ...
+
 async def get_current_user(
+    request: Request,
     credentials: HTTPAuthorizationCredentials = Depends(http_bearer),
 ) -> dict:
-    if credentials is None or not credentials.credentials:
+    auth_token = None
+    if credentials and credentials.credentials:
+        auth_token = credentials.credentials
+    else:
+        # 手動從 Query Parameter 讀取 token
+        auth_token = request.query_params.get("token")
+
+    if not auth_token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing token")
-    return verify_token(credentials.credentials)
+    return verify_token(auth_token)
 
 
 @router.get("/{task_id}/download")
@@ -63,15 +75,22 @@ async def download_task_results(
     if task.status != TaskStatus.DONE:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Task not completed")
 
+    print(f"DEBUG: Downloading task {task_id}, status={task.status}, requester={task.requester}")
+    print(f"DEBUG: OUTPUT_BASE={OUTPUT_BASE}, exists={OUTPUT_BASE.exists()}")
+
     output_dirs: list[Path] = []
     if task.video_id:
-        output_dirs.append(OUTPUT_BASE / task.video_id)
+        output_dirs.append(OUTPUT_BASE / str(task.video_id))
     output_dirs.append(OUTPUT_BASE / str(task.id))
+
+    print(f"DEBUG: Candidates: {[str(d) for d in output_dirs]}")
 
     files: list[Path] = []
     selected_dir: Path | None = None
     for candidate in output_dirs:
+        print(f"DEBUG: Checking candidate {candidate}, exists={candidate.exists()}")
         files = _collect_output_files(candidate)
+        print(f"DEBUG: Found {len(files)} files in {candidate}")
         if files:
             selected_dir = candidate
             break

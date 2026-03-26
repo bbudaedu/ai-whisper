@@ -1,9 +1,60 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusCircle, FileAudio, LayoutDashboard, History } from 'lucide-react';
+import { PlusCircle, FileAudio, LayoutDashboard, History, Loader2 } from 'lucide-react';
+import { usePolling } from '../hooks/usePolling';
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { data: tasksList, loading } = usePolling<any[]>('tasks/history', 30000);
+
+  const activeTasks = React.useMemo(() => {
+    if (!tasksList || !Array.isArray(tasksList)) return [];
+    const activeStatuses = ['queued', 'pending', 'running', 'downloading', 'processing'];
+    return tasksList.filter(task => activeStatuses.includes(task.status));
+  }, [tasksList]);
+
+  if (loading && !tasksList) {
+    return (
+      <div className="h-full flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
+
+  const hasActiveTasks = activeTasks.length > 0;
+
+  if (hasActiveTasks) {
+    return (
+      <div className="max-w-4xl mx-auto p-6 space-y-8">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">歡迎回來</h2>
+          <button
+            onClick={() => navigate('/submit')}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-sm"
+          >
+            <PlusCircle className="w-4 h-4" />
+            提交新任務
+          </button>
+        </div>
+
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 p-6 rounded-2xl flex items-center gap-6">
+          <div className="w-12 h-12 bg-blue-100 dark:bg-blue-800 rounded-xl flex items-center justify-center flex-shrink-0">
+            <History className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+          </div>
+          <div>
+            <h3 className="font-bold text-gray-900 dark:text-white">您有 {activeTasks.length} 個進行中的任務</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">您可以前往任務追蹤頁面查看詳細進度與下載結果。</p>
+          </div>
+          <button
+            onClick={() => navigate('/track')}
+            className="ml-auto text-sm font-bold text-blue-600 dark:text-blue-400 hover:underline"
+          >
+            立即查看
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto h-full flex flex-col items-center justify-center text-center p-6 min-h-[60vh]">

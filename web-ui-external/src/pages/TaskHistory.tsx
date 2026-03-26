@@ -27,8 +27,22 @@ interface TaskRecord {
 }
 
 export default function TaskHistory() {
-  const { data: tasks, loading, error, manualRefresh } = usePolling<TaskRecord[]>('tasks/history', 30000);
+  const { data: tasksList, loading, error, manualRefresh } = usePolling<TaskRecord[]>('tasks/history', 30000);
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+
+  const tasks = useMemo(() => {
+    if (!tasksList || !Array.isArray(tasksList)) return [];
+
+    // Filter for completed/ended tasks only
+    const endedStatuses = ['done', 'failed', 'canceled'];
+    return [...tasksList]
+      .filter(task => endedStatuses.includes(task.status))
+      .sort((a, b) => {
+        const dateB = new Date(b.created_at || 0).getTime();
+        const dateA = new Date(a.created_at || 0).getTime();
+        return dateB - dateA;
+      });
+  }, [tasksList]);
 
   const toggleRow = (id: number) => {
     const newExpanded = new Set(expandedRows);
@@ -80,8 +94,13 @@ export default function TaskHistory() {
   const downloadUrl = (taskId: number, format?: string) => {
     const baseUrl = import.meta.env.VITE_API_URL || '/api';
     const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    const token = localStorage.getItem('auth_token');
     const url = `${normalizedBaseUrl}/tasks/${taskId}/download`;
-    return format ? `${url}?format=${format}` : url;
+    const queryParams = new URLSearchParams();
+    if (format) queryParams.append('format', format);
+    if (token) queryParams.append('token', token);
+    const queryString = queryParams.toString();
+    return queryString ? `${url}?${queryString}` : url;
   };
 
   return (

@@ -1,30 +1,53 @@
 import React, { useState, useMemo } from 'react';
-import { FileText, CheckCircle, Clock, XCircle, RefreshCw, Download, ChevronDown, ChevronRight, AlertCircle, FileAudio } from 'lucide-react';
+import { FileText, CheckCircle, Clock, XCircle, RefreshCw, Download, ChevronDown, ChevronRight, AlertCircle, FileAudio, Trash2 } from 'lucide-react';
 import { usePolling } from '../hooks/usePolling';
+import client from '../api/client';
 
 interface TaskRecord {
-  id: string;
+  id: number;
   url: string;
   status: 'queued' | 'pending' | 'running' | 'downloading' | 'processing' | 'done' | 'failed' | 'canceled';
   title?: string;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
   error?: string;
 }
 
 export default function TaskTracker() {
-  const { data: tasksDict, loading, error, manualRefresh } = usePolling<Record<string, TaskRecord>>('tasks', 10000);
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const { data: tasksList, loading, error, manualRefresh } = usePolling<TaskRecord[]>('tasks/history', 10000);
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+  const [cancellingId, setCancellingId] = useState<number | null>(null);
+
+  const handleCancel = async (taskId: number) => {
+    if (!window.confirm('確定要取消這個任務嗎？')) return;
+
+    setCancellingId(taskId);
+    try {
+      await client.post(`/tasks/${taskId}/cancel`);
+      manualRefresh();
+    } catch (err: any) {
+      alert(`取消失敗: ${err.response?.data?.detail || err.message}`);
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   const tasks = useMemo(() => {
-    if (!tasksDict) return [];
-    return Object.values(tasksDict).sort((a, b) => {
-      // Sort by updated_at descending
-      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-    });
-  }, [tasksDict]);
+    if (!tasksList || !Array.isArray(tasksList)) return [];
 
-  const toggleRow = (id: string) => {
+    // Filter for active tasks only
+    const activeStatuses = ['queued', 'pending', 'running', 'downloading', 'processing'];
+    return [...tasksList]
+      .filter(task => activeStatuses.includes(task.status))
+      .sort((a, b) => {
+        // Sort by created_at descending (or updated_at if available)
+        const dateB = new Date(b.created_at || b.updated_at || 0).getTime();
+        const dateA = new Date(a.created_at || a.updated_at || 0).getTime();
+        return dateB - dateA;
+      });
+  }, [tasksList]);
+
+  const toggleRow = (id: number) => {
     const newExpanded = new Set(expandedRows);
     if (newExpanded.has(id)) {
       newExpanded.delete(id);
@@ -70,11 +93,16 @@ export default function TaskTracker() {
     }
   };
 
-  const downloadUrl = (taskId: string, format?: string) => {
+  const downloadUrl = (taskId: number, format?: string) => {
     const baseUrl = import.meta.env.VITE_API_URL || '/api';
     const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    const token = localStorage.getItem('auth_token');
     const url = `${normalizedBaseUrl}/tasks/${taskId}/download`;
-    return format ? `${url}?format=${format}` : url;
+    const queryParams = new URLSearchParams();
+    if (format) queryParams.append('format', format);
+    if (token) queryParams.append('token', token);
+    const queryString = queryParams.toString();
+    return queryString ? `${url}?${queryString}` : url;
   };
 
   return (
@@ -144,8 +172,8 @@ export default function TaskTracker() {
                               <span className="truncate block text-gray-900 dark:text-gray-100" title={task.title || task.id}>
                                 {task.title || '未知標題'}
                               </span>
-                              <span className="text-[12px] text-gray-400 dark:text-gray-500 block font-mono mt-0.5 truncate" title={task.id}>
-                                ID: {task.id.substring(0, 8)}...
+                              <span className="text-[12px] text-gray-400 dark:text-gray-500 block font-mono mt-0.5 truncate" title={String(task.id)}>
+                                ID: {task.id}
                               </span>
                             </div>
                           </div>
@@ -154,7 +182,7 @@ export default function TaskTracker() {
                           {getStatusBadge(task.status)}
                         </td>
                         <td className="px-6 py-4 text-gray-500 dark:text-gray-400 text-right font-mono text-[13px]">
-                          {formatDate(task.updated_at)}
+                          {formatDate(task.updated_at || task.created_at)}
                         </td>
                       </tr>
 
@@ -216,6 +244,21 @@ export default function TaskTracker() {
                                       ))}
                                     </div>
                                   </div>
+                                </div>
+                              )}
+
+                              {/* Cancel Action */}
+                              {!isDone && !isError && (
+                                <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                                  <h4 className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">任務操作</h4>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleCancel(task.id); }}
+                                    disabled={cancellingId === task.id}
+                                    className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-red-600 hover:text-white hover:bg-red-600 border border-red-200 hover:border-red-600 rounded-md transition-all disabled:opacity-50"
+                                  >
+                                    {cancellingId === task.id ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                    {cancellingId === task.id ? '取消中...' : '取消任務'}
+                                  </button>
                                 </div>
                               )}
                             </div>
