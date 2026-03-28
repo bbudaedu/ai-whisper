@@ -18,8 +18,8 @@
 
 ### Phase 08: Web UI E2E 自動化測試 (UI E2E)
 使用 Playwright 針對 `web-ui-external` 進行端對端模擬操作測試。
-- [ ] **Plan 08-01**: 實作行動版/PC 版 UI 的登入流程測試。
-- [ ] **Plan 08-02**: 實作任務上傳、追蹤與下載結果的 UI E2E 腳本。
+- [ ] **Plan 08-01**: 建立 Playwright 基礎設施與實作登入流程 E2E 測試。
+- [ ] **Plan 08-02**: 實作任務提交、追蹤、狀態更新與響應式佈局 E2E 測試。
 
 ### Phase 09: 說話者名稱編輯與真實 LLM 串接 (Refinement)
 擴充 v1.0 功能，支援真實人名標註與 OpenAI/Anthropic API 整合。
