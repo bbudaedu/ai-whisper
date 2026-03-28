@@ -1,0 +1,12 @@
+# node_modules
+node_modules
+dist
+
+# playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# auth session
+.auth/
