@@ -12,9 +12,9 @@
 ## 🧩 Requirements
 
 ### TEST-01: API 自動化測試 (Backend)
-- [ ] **Auth 流程測試**：包含 JWT 登入、Token 刷新與 Google OAuth 模擬。
-- [ ] **任務 CRUD 測試**：建立任務、查詢狀態、取消任務的 API 完整性。
-- [ ] **下載端點測試**：驗證多格式（word, excel, txt）下載產出的正確性。
+- [x] **Auth 流程測試**：包含 JWT 登入、Token 刷新與 Google OAuth 模擬。
+- [x] **任務 CRUD 測試**：建立任務、查詢狀態、取消任務的 API 完整性。
+- [x] **下載端點測試**：驗證多格式（word, excel, txt）下載產出的正確性。
 
 ### TEST-02: Pipeline 整合測試 (Processing)
 - [ ] **YouTube 下載測試**：驗證 `yt-dlp` 下載特定短片的路徑與權限。
@@ -34,7 +34,7 @@
 
 | ID | Requirement | Phase | Status |
 |----|-------------|-------|--------|
-| TEST-01 | API 自動化測試 | 07 | Pending |
+| TEST-01 | API 自動化測試 | 07 | Completed |
 | TEST-02 | Pipeline 整合測試 | 07 | Pending |
 | TEST-03 | Web UI E2E 測試 | 08 | Pending |
 | TEST-04 | 測試基礎設施 | 07 | Pending |

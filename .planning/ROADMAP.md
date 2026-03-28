@@ -11,9 +11,9 @@
 
 ### Phase 07: 測試基礎設施與 API/Pipeline 自動化 (Test Infrastructure)
 建立測試環境（Playwright/Pytest），並完成後端 API 與處理管線的自動化驗證。
-**Plans:** 3 plans
+**Plans:** 2/3 plans executed
 - [x] 07-01-PLAN.md — 建立測試用資料庫、test_config.json 與測試資產目錄。
-- [ ] 07-02-PLAN.md — 實作 pytest 的後端測試（Auth, Task CRUD, Download）。
+- [x] 07-02-PLAN.md — 實作 pytest 的後端測試（Auth, Task CRUD, Download）。
 - [ ] 07-03-PLAN.md — 實作 Pipeline 整合測試（Mock GPU 處理、並發爭搶驗證）。
 
 ### Phase 08: Web UI E2E 自動化測試 (UI E2E)
