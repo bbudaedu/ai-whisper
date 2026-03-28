@@ -17,9 +17,9 @@
 - [x] **下載端點測試**：驗證多格式（word, excel, txt）下載產出的正確性。
 
 ### TEST-02: Pipeline 整合測試 (Processing)
-- [ ] **YouTube 下載測試**：驗證 `yt-dlp` 下載特定短片的路徑與權限。
-- [ ] **GPU 排程測試**：模擬多任務併發時 `gpu_lock.py` 的序列化邏輯。
-- [ ] **轉錄與校對測試**：驗證 `faster-whisper` 與 `proofreading` 節點的資料流。
+- [x] **YouTube 下載測試**：驗證 `yt-dlp` 下載特定短片的路徑與權限。
+- [x] **GPU 排程測試**：模擬多任務併發時 `gpu_lock.py` 的序列化邏輯。
+- [x] **轉錄與校對測試**：驗證 `faster-whisper` 與 `proofreading` 節點的資料流。
 
 ### TEST-03: Web UI E2E 測試 (Frontend)
 - [ ] **上傳工作流測試**：使用 Playwright 模擬檔案上傳並確認任務出現在列表中。
@@ -35,6 +35,6 @@
 | ID | Requirement | Phase | Status |
 |----|-------------|-------|--------|
 | TEST-01 | API 自動化測試 | 07 | Completed |
-| TEST-02 | Pipeline 整合測試 | 07 | Pending |
+| TEST-02 | Pipeline 整合測試 | 07 | Completed |
 | TEST-03 | Web UI E2E 測試 | 08 | Pending |
 | TEST-04 | 測試基礎設施 | 07 | Pending |
