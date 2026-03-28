@@ -22,13 +22,13 @@
 - [x] **轉錄與校對測試**：驗證 `faster-whisper` 與 `proofreading` 節點的資料流。
 
 ### TEST-03: Web UI E2E 測試 (Frontend)
-- [ ] **上傳工作流測試**：使用 Playwright 模擬檔案上傳並確認任務出現在列表中。
-- [ ] **狀態更新測試**：驗證 UI 是否正確輪詢並顯示 `running` 到 `done` 的轉變。
-- [ ] **歷史記錄操作測試**：模擬展開詳情並點擊各別格式的下載按鈕。
+- [x] **上傳工作流測試**：使用 Playwright 模擬檔案上傳並確認任務出現在列表中。
+- [x] **狀態更新測試**：驗證 UI 是否正確輪詢並顯示 `running` 到 `done` 的轉變。
+- [x] **歷史記錄操作測試**：模擬展開詳情並點擊各別格式的下載按鈕。
 
 ### TEST-04: 環境與基礎設施
-- [ ] **測試環境配置**：建立獨立的 `test_config.json` 與測試用資料庫（避免污染正式資料）。
-- [ ] **自動化執行指令**：提供單一指令（如 `npm run test:e2e` 或 `pytest tests/e2e`）執行全案測試。
+- [x] **測試環境配置**：建立獨立的 `test_config.json` 與測試用資料庫（已在 Phase 07 完成）。
+- [x] **自動化執行指令**：提供 `npm run test:e2e` 或 `pytest` 指令執行測試。
 
 ## 📝 Traceability
 
@@ -36,5 +36,5 @@
 |----|-------------|-------|--------|
 | TEST-01 | API 自動化測試 | 07 | Completed |
 | TEST-02 | Pipeline 整合測試 | 07 | Completed |
-| TEST-03 | Web UI E2E 測試 | 08 | Pending |
-| TEST-04 | 測試基礎設施 | 07 | Pending |
+| TEST-03 | Web UI E2E 測試 | 08 | Completed |
+| TEST-04 | 測試基礎設施 | 07 | Completed |

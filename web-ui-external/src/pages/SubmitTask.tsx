@@ -95,14 +95,14 @@ export default function SubmitTask() {
 
         <form onSubmit={handleSubmit} className="p-6 space-y-8">
           {successMessage && (
-            <div className="p-4 rounded-xl bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 text-green-700 dark:text-green-400 flex items-center gap-3">
+            <div data-testid="success-alert" className="p-4 rounded-xl bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 text-green-700 dark:text-green-400 flex items-center gap-3">
               <CheckCircle2 className="w-5 h-5" />
               {successMessage}
             </div>
           )}
 
           {errorMessage && (
-            <div className="p-4 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-400">
+            <div data-testid="error-alert" className="p-4 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-400">
               {errorMessage}
             </div>
           )}
@@ -111,6 +111,7 @@ export default function SubmitTask() {
           <div className="flex p-1 space-x-1 bg-gray-100 dark:bg-gray-800/50 rounded-xl">
             <button
               type="button"
+              data-testid="mode-upload"
               onClick={() => setMode('upload')}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-colors ${
                 mode === 'upload'
@@ -123,6 +124,7 @@ export default function SubmitTask() {
             </button>
             <button
               type="button"
+              data-testid="mode-youtube"
               onClick={() => setMode('youtube')}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg transition-colors ${
                 mode === 'youtube'
@@ -174,6 +176,7 @@ export default function SubmitTask() {
               <div className="space-y-2">
                 <input
                   type="url"
+                  data-testid="input-youtube-url"
                   placeholder="https://www.youtube.com/watch?v=... 或 https://youtube.com/playlist?list=..."
                   className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white"
                   value={url}
@@ -263,6 +266,7 @@ export default function SubmitTask() {
           <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
             <button
               type="submit"
+              data-testid="btn-submit-task"
               disabled={isSubmitting || (mode === 'upload' && !file) || (mode === 'youtube' && !url)}
               className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 dark:disabled:bg-blue-800 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-colors focus:outline-none focus:ring-4 focus:ring-blue-500/20 shadow-sm flex items-center justify-center gap-2"
             >

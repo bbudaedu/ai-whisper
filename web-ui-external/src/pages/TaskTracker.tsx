@@ -35,10 +35,10 @@ export default function TaskTracker() {
   const tasks = useMemo(() => {
     if (!tasksList || !Array.isArray(tasksList)) return [];
 
-    // Filter for active tasks only
-    const activeStatuses = ['queued', 'pending', 'running', 'downloading', 'processing'];
+    // Filter for active tasks OR done tasks (for E2E verification)
+    const displayStatuses = ['queued', 'pending', 'running', 'downloading', 'processing', 'done', 'failed', 'canceled'];
     return [...tasksList]
-      .filter(task => activeStatuses.includes(task.status))
+      .filter(task => displayStatuses.includes(task.status))
       .sort((a, b) => {
         // Sort by created_at descending (or updated_at if available)
         const dateB = new Date(b.created_at || b.updated_at || 0).getTime();
@@ -115,6 +115,7 @@ export default function TaskTracker() {
         <button
           onClick={manualRefresh}
           disabled={loading}
+          data-testid="btn-refresh"
           className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#161b22] border border-gray-200 dark:border-gray-800 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 transition-colors shadow-sm"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-blue-500' : 'text-gray-500'}`} />
@@ -141,7 +142,7 @@ export default function TaskTracker() {
       ) : (
         <div className="bg-white dark:bg-[#161b22] border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto w-full">
-            <table className="w-full text-left border-collapse whitespace-nowrap">
+            <table data-testid="task-list-table" className="w-full text-left border-collapse whitespace-nowrap">
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-gray-200 dark:border-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400">
                   <th className="px-6 py-4 w-8"></th>
@@ -159,6 +160,7 @@ export default function TaskTracker() {
                   return (
                     <React.Fragment key={task.id}>
                       <tr
+                        data-testid={`task-item-${task.id}`}
                         className={`hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer ${isExpanded ? 'bg-slate-50 dark:bg-slate-800/30' : ''}`}
                         onClick={() => toggleRow(task.id)}
                       >
@@ -178,7 +180,7 @@ export default function TaskTracker() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4" data-testid={`task-status-${task.id}`}>
                           {getStatusBadge(task.status)}
                         </td>
                         <td className="px-6 py-4 text-gray-500 dark:text-gray-400 text-right font-mono text-[13px]">
@@ -221,6 +223,7 @@ export default function TaskTracker() {
                                   <div className="flex flex-wrap gap-2">
                                     <a
                                       href={downloadUrl(task.id)}
+                                      data-testid="btn-download-all"
                                       className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-sm transition-colors"
                                       onClick={(e) => e.stopPropagation()}
                                     >

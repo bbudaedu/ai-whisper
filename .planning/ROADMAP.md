@@ -17,9 +17,10 @@
 - [x] 07-03-PLAN.md — 實作 Pipeline 整合測試（Mock GPU 處理、並發爭搶驗證）。
 
 ### Phase 08: Web UI E2E 自動化測試 (UI E2E)
-使用 Playwright 針對 `web-ui-external` 進行端對端模擬操作測試。
-- [ ] **Plan 08-01**: 建立 Playwright 基礎設施與實作登入流程 E2E 測試。
-- [ ] **Plan 08-02**: 實作任務提交、追蹤、狀態更新與響應式佈局 E2E 測試。
+建立 Playwright 測試框架，並完成 External Web UI 的核心流程驗證（Auth, Task, Responsive）。
+**Plans:** 2/2 plans complete
+- [x] 08-01-PLAN.md — 建立 Playwright 基礎設施與實作登入流程 E2E 測試。
+- [x] 08-02-PLAN.md — 實作任務提交、追蹤、狀態更新與響應式佈局 E2E 測試。
 
 ### Phase 09: 說話者名稱編輯與真實 LLM 串接 (Refinement)
 擴充 v1.0 功能，支援真實人名標註與 OpenAI/Anthropic API 整合。

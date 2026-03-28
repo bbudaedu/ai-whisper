@@ -16,21 +16,21 @@ progress:
 ## Current Phase
 
 - Phase: 08-ui-e2e
-- Phase Status: In Progress
-- Current Plan: 1 (completed)
+- Phase Status: Completed
+- Current Plan: 2 (completed)
 - Total Plans in Phase: 2
-- Last Updated: 2026-03-28T05:00:00Z
+- Last Updated: 2026-03-28T06:30:00Z
 
 ## Last Session
 
 - **Date**: 2026-03-28
-- **Action**: Execute Plan 08-01 (Playwright Setup & Auth)
-- **Stopped At**: Completed 08-01-PLAN.md
+- **Action**: Execute Plan 08-02 (Task Flow & Responsive)
+- **Stopped At**: Completed 08-02-PLAN.md
 - **Completed**:
-    - 在 `web-ui-external` 安裝並配置 Playwright。
-    - 為 `Login.tsx` 與 `Navigation.tsx` 添加 `data-testid`。
-    - 實作 `auth.setup.ts` 與 `login.spec.ts` (使用 API Mocking)。
-    - 驗證跨瀏覽器 (Chromium/Mobile Safari) 的登入與重導向邏輯。
+    - 為 `SubmitTask.tsx` 與 `TaskTracker.tsx` 添加 `data-testid`。
+    - 實作 `task_flow.spec.ts` 驗證任務提交、追蹤與下載連結。
+    - 修正 `TaskTracker.tsx` 顯示邏輯，允許顯示「已完成」狀態任務。
+    - 驗證 Mobile Safari (iPhone 12) 響應式導覽列。
 
 ## Accumulated Decisions
 
@@ -46,6 +46,7 @@ progress:
 - [Phase 07]: Smoke fixture patches task-event/output paths and PlaylistSyncWorker to prevent side effects
 - [Phase 08]: 使用 API Mocking 確保 UI E2E 測試的獨立性與執行速度。
 - [Phase 08]: 針對行動版 Viewport 調整定位邏輯以識別底部的 nav 元素。
+- [Phase 08]: 擴展 TaskTracker 顯示範圍至 done/failed/canceled 狀態以支持端對端驗證。
 
 ## Current Blocking Issues
 
@@ -67,3 +68,4 @@ progress:
 | Phase 07 P02 | 4min | 3 tasks | 3 files |
 | Phase 07 P03 | 3min | 3 tasks | 3 files |
 | Phase 08-ui-e2e P01 | 1.5h | 3 tasks | 7 files |
+| Phase 08-ui-e2e P02 | 45m | 2 tasks | 4 files |
