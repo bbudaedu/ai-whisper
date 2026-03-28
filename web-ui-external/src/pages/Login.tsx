@@ -96,6 +96,7 @@ export const Login: React.FC = () => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              data-testid="login-email"
               className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#0d1117] border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-400"
               placeholder="name@example.com"
               required
@@ -111,6 +112,7 @@ export const Login: React.FC = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              data-testid="login-password"
               className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#0d1117] border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-400"
               placeholder="••••••••"
               required
@@ -121,6 +123,7 @@ export const Login: React.FC = () => {
           <button
             type="submit"
             disabled={isLoading}
+            data-testid="login-submit"
             className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isLoading ? (

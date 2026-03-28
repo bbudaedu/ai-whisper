@@ -11,12 +11,12 @@ export const Navigation: React.FC<{
   const location = useLocation();
 
   const navItems = [
-    { path: '/', label: '總覽', icon: LayoutDashboard, exact: true },
-    { path: '/submit', label: '提交任務', icon: PlusCircle },
-    { path: '/track', label: '任務追蹤', icon: List },
-    { path: '/history', label: '歷史記錄', icon: History },
-    { path: '/playlists', label: '播放清單', icon: PlaySquare },
-    { path: '/settings', label: '設定', icon: Settings },
+    { path: '/', label: '總覽', icon: LayoutDashboard, exact: true, testId: 'nav-dashboard' },
+    { path: '/submit', label: '提交任務', icon: PlusCircle, testId: 'nav-submit' },
+    { path: '/track', label: '任務追蹤', icon: List, testId: 'nav-track' },
+    { path: '/history', label: '歷史記錄', icon: History, testId: 'nav-history' },
+    { path: '/playlists', label: '播放清單', icon: PlaySquare, testId: 'nav-playlists' },
+    { path: '/settings', label: '設定', icon: Settings, testId: 'nav-settings' },
   ];
 
   const handleLogout = () => {
@@ -38,6 +38,7 @@ export const Navigation: React.FC<{
             <NavLink
               key={item.path}
               to={item.path}
+              data-testid={item.testId}
               className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${
                 isActive
                   ? 'text-blue-600 dark:text-blue-500'
@@ -76,6 +77,7 @@ export const Navigation: React.FC<{
               key={item.path}
               to={item.path}
               onClick={onCloseMobile}
+              data-testid={item.testId}
               className={`flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
                 isActive
                   ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
@@ -105,6 +107,7 @@ export const Navigation: React.FC<{
         </div>
         <button
           onClick={handleLogout}
+          data-testid="nav-logout"
           className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
         >
           <LogOut className="w-5 h-5 flex-shrink-0" />
