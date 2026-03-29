@@ -99,7 +99,7 @@ def load_lecture_text(pdf_path=None):
         target_pdf = targets[0]
         cache_name = "lecture_cache_" + os.path.basename(target_pdf) + ".txt"
         cache_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), cache_name)
-        
+
         if os.path.exists(cache_path):
             cache_mtime = os.path.getmtime(cache_path)
             pdf_mtime = os.path.getmtime(target_pdf)
@@ -107,7 +107,7 @@ def load_lecture_text(pdf_path=None):
                 logger.info(f"使用講義快取: {cache_path}")
                 with open(cache_path, "r", encoding="utf-8") as f:
                     return f.read()
-                    
+
         text = extract_pdf_text(target_pdf)
         if text:
             with open(cache_path, "w", encoding="utf-8") as f:
@@ -122,7 +122,7 @@ def load_lecture_text(pdf_path=None):
     for p in targets:
         # 單個檔案依然使用其各自的快取加速
         all_texts.append(load_lecture_text(p))
-    
+
     return "\n\n".join(all_texts)
 
 
@@ -165,7 +165,7 @@ def call_api(prompt, max_retries=3):
     return _api_client.call(prompt)
 
 
-def proofread_chunk(chunk_subtitles, lecture_text, chunk_num, total_chunks, custom_prompt=None):
+def proofread_chunk(chunk_subtitles, lecture_text, chunk_num, total_chunks, custom_prompt=None, speaker_name=None):
     """校對一個字幕批次"""
     logger.info(f"正在校對批次 {chunk_num}/{total_chunks} ({len(chunk_subtitles)} 條字幕)")
 
@@ -186,10 +186,15 @@ def proofread_chunk(chunk_subtitles, lecture_text, chunk_num, total_chunks, cust
 
 """
 
+    speaker_section = ""
+    if speaker_name:
+        speaker_section = f"當前講者：{speaker_name}\n"
+
     if custom_prompt and custom_prompt.strip():
         # User defined a custom prompt, replace the placeholders
         prompt = custom_prompt.replace("{{lecture_section}}", lecture_section)
         prompt = prompt.replace("{{srt_text}}", srt_text_only)
+        prompt = prompt.replace("{{speaker_name}}", speaker_name or "未知")
     else:
         # Fallback to hardcoded safe default prompt
         prompt = f"""你是一個佛學大師，精通經律論三藏十二部經典，以下文本是whisper產生的字幕文本，關於佛學課程內容，有很多同音字聽打錯誤，幫我依據我提供的上課講義校對文本，嚴格依照以下規則，直接修正錯誤：
@@ -198,7 +203,7 @@ def proofread_chunk(chunk_subtitles, lecture_text, chunk_num, total_chunks, cust
 2.不要加標點符號
 3.輸出繁體中文
 
-{lecture_section}
+{speaker_section}{lecture_section}
 
 以下是需要校對的字幕文本，格式是 [序號] 文字：
 <字幕>
@@ -231,7 +236,7 @@ def proofread_chunk(chunk_subtitles, lecture_text, chunk_num, total_chunks, cust
     return corrected_subtitles
 
 
-def proofread_srt(srt_path, lecture_text, custom_prompt=None):
+def proofread_srt(srt_path, lecture_text, custom_prompt=None, speaker_name=None):
     """對整個 SRT 檔進行分批校對"""
     subtitles = parse_srt(srt_path)
     if not subtitles:
@@ -267,9 +272,9 @@ def proofread_srt(srt_path, lecture_text, custom_prompt=None):
             logger.info(f"跳過已完成的批次 {i}/{total_chunks}")
             continue
 
-        corrected = proofread_chunk(chunk, lecture_text, i, total_chunks, custom_prompt=custom_prompt)
+        corrected = proofread_chunk(chunk, lecture_text, i, total_chunks, custom_prompt=custom_prompt, speaker_name=speaker_name)
         all_corrected.extend(corrected)
-        
+
         # 儲存進度
         try:
             with open(checkpoint_file, "w", encoding="utf-8") as f:
@@ -296,13 +301,16 @@ def proofread_srt(srt_path, lecture_text, custom_prompt=None):
 def main():
     parser = argparse.ArgumentParser(description="Whisper SRT 校對 - Gemini Pro")
     parser.add_argument("srt_file", help="要校對的 .srt 檔案路徑")
+    parser.add_argument("--speaker-name", help="當前講者名稱", default=None)
     args = parser.parse_args()
 
     srt_path = args.srt_file
+    speaker_name = args.speaker_name
 
     logger.info("=" * 60)
     logger.info("Whisper SRT 校對腳本啟動")
     logger.info(f"輸入: {srt_path}")
+    logger.info(f"講者: {speaker_name}")
     logger.info(f"模型: {PROOFREAD_MODEL}")
     logger.info("=" * 60)
 
@@ -316,12 +324,12 @@ def main():
         nas_base = config_data.get("nas_output_base", "/mnt/nas/Whisper_auto_rum/T097V")
         state_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "processed_videos.json")
         import glob
-        
+
         to_process = []
         if os.path.exists(state_file):
             with open(state_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
-            
+
             for vid, info in data.items():
                 title = info.get("title", "")
                 match = re.search(r'(\d+)\s*$', title)
@@ -329,24 +337,25 @@ def main():
                     ep = str(int(match.group(1))).zfill(3)
                 else:
                     ep = title.strip().replace(' ', '_')
-                
+
                 ep_dir = os.path.join(nas_base, f"T097V{ep}")
                 if os.path.isdir(ep_dir):
                     srts = glob.glob(os.path.join(ep_dir, "*.srt"))
                     original_srts = [s for s in srts if not s.endswith("_proofread.srt")]
                     proofread_srts = [s for s in srts if s.endswith("_proofread.srt")]
-                    
+
                     if original_srts and not proofread_srts:
                         to_process.append(original_srts[0])
-        
+
         if not to_process:
             logger.info("太棒了！所有資料夾都沒有需要校對的 SRT 檔案。")
             return
-            
+
         for target_srt in to_process:
             logger.info(f">>> 開始自動校對: {target_srt}")
             try:
-                corrected = proofread_srt(target_srt, lecture_text)
+                # auto 模式下目前的資訊不足以獲取 speaker_name
+                corrected = proofread_srt(target_srt, lecture_text, speaker_name=speaker_name)
                 if corrected:
                     base = os.path.splitext(target_srt)[0]
                     output_path = f"{base}_proofread.srt"
@@ -362,14 +371,9 @@ def main():
         logger.error(f"SRT 檔案不存在: {srt_path}")
         sys.exit(1)
 
-    # 1. 載入講義
-    lecture_text = load_lecture_text()
-    if not lecture_text:
-        logger.warning("未能載入講義，將進行無講義校對")
-
     # 2. 校對
     try:
-        corrected = proofread_srt(srt_path, lecture_text)
+        corrected = proofread_srt(srt_path, lecture_text, speaker_name=speaker_name)
         if not corrected:
             logger.error("校對失敗")
             sys.exit(1)

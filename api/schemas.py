@@ -51,8 +51,13 @@ class TaskStatusResponse(BaseModel):
     status: TaskStatus
     created_at: datetime
     requester: str
+    speaker_name: Optional[str] = None
     events: List[TaskEventSchema] = []
     artifacts: List[TaskArtifactSchema] = []
+
+
+class TaskUpdatePayload(BaseModel):
+    speaker_name: Optional[str] = None
 
 
 class TaskCancelResponse(BaseModel):

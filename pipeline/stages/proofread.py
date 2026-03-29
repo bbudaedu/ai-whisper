@@ -28,8 +28,9 @@ def execute(stage_task: StageTask, context: dict) -> dict:
             pdf_paths = sorted(pdfs)
 
     lecture_text = load_lecture_text(pdf_path=pdf_paths)
+    speaker_name = context.get("speaker_name")
 
-    corrected = proofread_srt(srt_path, lecture_text, custom_prompt=custom_prompt)
+    corrected = proofread_srt(srt_path, lecture_text, custom_prompt=custom_prompt, speaker_name=speaker_name)
     if not corrected:
         raise RuntimeError(f"校對失敗: {srt_path}")
 

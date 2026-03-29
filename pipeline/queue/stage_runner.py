@@ -98,6 +98,7 @@ def build_context_for_stage(
         "video_id": task.video_id,
         "title": task.title,
         "playlist_id": task.playlist_id,
+        "speaker_name": task.speaker_name,
         "playlist_config": {},
     }
 

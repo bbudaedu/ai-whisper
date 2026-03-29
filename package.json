@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "test:v2": "pytest tests/v2 -v",
+    "test:v2:gpu": "pytest tests/v2/test_gpu_concurrency.py -v"
+  },
   "dependencies": {
     "react-router-dom": "^7.13.1"
   },

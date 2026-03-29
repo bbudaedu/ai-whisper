@@ -125,6 +125,16 @@ python -m py_compile src/**/*.py
 
 ### Test Verification
 
+**Python (v2 Tests):**
+```bash
+# Run all Phase 07 tests
+npm run test:v2
+
+# Run GPU concurrency tests specifically
+npm run test:v2:gpu
+```
+
+**General:**
 ```powershell
 # Node.js
 npm test

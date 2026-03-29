@@ -16,6 +16,7 @@ from api.schemas import (
     TaskCreateResponse,
     TaskEventSchema,
     TaskStatusResponse,
+    TaskUpdatePayload,
 )
 from database.persistence import log_task_event
 from pipeline.queue.database import get_session
@@ -261,6 +262,64 @@ async def get_task_status(task_id: int, user: dict = Depends(get_current_user)):
             status=task.status,
             created_at=task.created_at,
             requester=task.requester or "",
+            events=[
+                TaskEventSchema(
+                    id=e.id,
+                    event_type=e.event_type,
+                    event_metadata=e.event_metadata,
+                    created_at=e.created_at,
+                )
+                for e in events
+            ],
+            artifacts=[
+                TaskArtifactSchema(
+                    id=a.id,
+                    format=a.format,
+                    path=a.path,
+                    created_at=a.created_at,
+                )
+                for a in artifacts
+            ],
+            speaker_name=task.speaker_name,
+        )
+
+
+@router.patch("/{task_id}", response_model=TaskStatusResponse)
+async def update_task(
+    task_id: int,
+    payload: TaskUpdatePayload,
+    user: dict = Depends(get_current_user),
+):
+    requester = user.get("user_id") or ""
+    role = user.get("role") or "external"
+    with get_session() as session:
+        repo = TaskRepository(session)
+        task = repo.get_task(task_id)
+        if task is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+
+        # 權限檢查：僅限 internal 角色或任務擁有者
+        if role != "internal" and task.requester != requester:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+
+        if payload.speaker_name is not None:
+            task.speaker_name = payload.speaker_name
+
+        task.updated_at = datetime.utcnow()
+        session.add(task)
+        session.commit()
+        session.refresh(task)
+
+        events = repo.get_events(task_id)
+        artifacts = repo.get_artifacts(task_id)
+
+        return TaskStatusResponse(
+            id=task.id,
+            title=task.title,
+            status=task.status,
+            created_at=task.created_at,
+            requester=task.requester or "",
+            speaker_name=task.speaker_name,
             events=[
                 TaskEventSchema(
                     id=e.id,

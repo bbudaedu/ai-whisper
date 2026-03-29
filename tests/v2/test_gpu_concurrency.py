@@ -14,11 +14,14 @@ def temp_lock_file(tmp_path, monkeypatch):
     yield lock_path
 
 
-def _worker_acquire(lock_path, results, hold_seconds=1.0):
+def _worker_acquire(lock_path, results, barrier, hold_seconds=1.0):
     """子進程：嘗試取得 GPU lock，記錄結果。"""
     import gpu_lock as gl
 
     gl.LOCK_FILE = lock_path
+
+    # 同步競爭鎖
+    barrier.wait()
 
     fd = gl.acquire_gpu_lock()
     if fd is not None:
@@ -40,33 +43,34 @@ class TestGpuLockMutualExclusion:
         assert fd is not None
         release_gpu_lock(fd)
 
-    def test_same_process_double_acquire_succeeds(self, temp_lock_file):
-        """同進程內第二次 acquire 會被阻擋（依目前實作行為）。"""
+    def test_same_process_double_acquire_fails(self, temp_lock_file):
+        """同進程內第二次 acquire 會被阻擋（即便 fd 不同，Linux flock 對同一檔案仍互斥）。"""
         from gpu_lock import acquire_gpu_lock, release_gpu_lock
 
         fd1 = acquire_gpu_lock()
         assert fd1 is not None
         fd2 = acquire_gpu_lock()
+        # 同一進程不同 fd，在 Linux 上仍會被阻擋
         assert fd2 is None
 
         release_gpu_lock(fd1)
 
     def test_cross_process_mutual_exclusion(self, temp_lock_file):
-        """兩個 process 同時 acquire，至少一個成功。"""
+        """兩個 process 同時 acquire，只有一個成功。"""
         manager = multiprocessing.Manager()
         results = manager.list()
+        barrier = multiprocessing.Barrier(2)
 
         p1 = multiprocessing.Process(
             target=_worker_acquire,
-            args=(temp_lock_file, results, 1.0),
+            args=(temp_lock_file, results, barrier, 1.0),
         )
         p2 = multiprocessing.Process(
             target=_worker_acquire,
-            args=(temp_lock_file, results, 0.5),
+            args=(temp_lock_file, results, barrier, 1.0),
         )
 
         p1.start()
-        time.sleep(0.2)
         p2.start()
 
         p1.join(timeout=5)
@@ -75,8 +79,8 @@ class TestGpuLockMutualExclusion:
         assert len(results) == 2
         acquired_count = results.count("acquired")
         blocked_count = results.count("blocked")
-        assert acquired_count >= 1
-        assert acquired_count + blocked_count == 2
+        assert acquired_count == 1
+        assert blocked_count == 1
 
     def test_release_allows_reacquire(self, temp_lock_file):
         """釋放後應能重新取得。"""

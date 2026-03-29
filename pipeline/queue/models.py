@@ -37,6 +37,7 @@ class Task(SQLModel, table=True):
     retry_count: int = Field(default=0)
     error_message: str = Field(default="")
     audio_profile: Optional[str] = Field(default=None)
+    speaker_name: Optional[str] = Field(default=None, index=True)
     source_metadata: Optional[str] = Field(default=None)  # 儲存 JSON string
     parent_task_id: Optional[int] = Field(default=None, index=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
