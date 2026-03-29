@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { FileText, CheckCircle, Clock, XCircle, RefreshCw, Download, ChevronDown, ChevronRight, AlertCircle, FileAudio, Trash2 } from 'lucide-react';
+import { FileText, CheckCircle, Clock, XCircle, RefreshCw, Download, ChevronDown, ChevronRight, AlertCircle, FileAudio, Trash2, User } from 'lucide-react';
 import { usePolling } from '../hooks/usePolling';
 import client from '../api/client';
 
@@ -11,12 +11,34 @@ interface TaskRecord {
   created_at: string;
   updated_at?: string;
   error?: string;
+  speaker_name?: string;
 }
 
 export default function TaskTracker() {
   const { data: tasksList, loading, error, manualRefresh } = usePolling<TaskRecord[]>('tasks/history', 10000);
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
   const [cancellingId, setCancellingId] = useState<number | null>(null);
+  const [updatingSpeakerId, setUpdatingSpeakerId] = useState<number | null>(null);
+  const [editSpeaker, setEditSpeaker] = useState<{ [key: number]: string }>({});
+
+  const handleUpdateSpeaker = async (taskId: number) => {
+    const speakerName = editSpeaker[taskId];
+    if (speakerName === undefined) return;
+
+    setUpdatingSpeakerId(taskId);
+    try {
+      await client.patch(`/tasks/${taskId}`, { speaker_name: speakerName });
+      manualRefresh();
+      // Clear edit state after successful update
+      const newEditSpeaker = { ...editSpeaker };
+      delete newEditSpeaker[taskId];
+      setEditSpeaker(newEditSpeaker);
+    } catch (err: any) {
+      alert(`更新失敗: ${err.response?.data?.detail || err.message}`);
+    } finally {
+      setUpdatingSpeakerId(null);
+    }
+  };
 
   const handleCancel = async (taskId: number) => {
     if (!window.confirm('確定要取消這個任務嗎？')) return;
@@ -51,6 +73,10 @@ export default function TaskTracker() {
     const newExpanded = new Set(expandedRows);
     if (newExpanded.has(id)) {
       newExpanded.delete(id);
+      // Clear edit state when collapsing
+      const newEditSpeaker = { ...editSpeaker };
+      delete newEditSpeaker[id];
+      setEditSpeaker(newEditSpeaker);
     } else {
       newExpanded.add(id);
     }
@@ -193,6 +219,39 @@ export default function TaskTracker() {
                         <tr className="bg-slate-50/50 dark:bg-slate-800/10 border-b border-gray-100 dark:border-gray-800">
                           <td colSpan={4} className="px-6 py-4 pl-14">
                             <div className="space-y-4">
+                              {/* Speaker Name Edit */}
+                              <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                                <h4 className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">說話者人名</h4>
+                                <div className="relative max-w-xs">
+                                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <User className="h-4 w-4 text-gray-400" />
+                                  </div>
+                                  <input
+                                    type="text"
+                                    data-testid={`speaker-input-${task.id}`}
+                                    className="block w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-700 rounded-md leading-5 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                    placeholder="輸入說話者人名..."
+                                    value={editSpeaker[task.id] !== undefined ? editSpeaker[task.id] : (task.speaker_name || '')}
+                                    onChange={(e) => {
+                                      setEditSpeaker({ ...editSpeaker, [task.id]: e.target.value });
+                                    }}
+                                    onBlur={() => handleUpdateSpeaker(task.id)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') {
+                                        handleUpdateSpeaker(task.id);
+                                        (e.target as HTMLInputElement).blur();
+                                      }
+                                    }}
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                  {updatingSpeakerId === task.id && (
+                                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                      <RefreshCw className="h-4 w-4 text-blue-500 animate-spin" />
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
                               {/* Source URL */}
                               <div>
                                 <h4 className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">來源網址</h4>
