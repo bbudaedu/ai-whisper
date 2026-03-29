@@ -30,6 +30,10 @@
 - [x] **測試環境配置**：建立獨立的 `test_config.json` 與測試用資料庫（已在 Phase 07 完成）。
 - [x] **自動化執行指令**：提供 `npm run test:e2e` 或 `pytest` 指令執行測試。
 
+### REFINEMENT-01: 說話者名稱與編輯 (Phase 09)
+- [x] **DB-01**: 資料庫 tasks 表包含 speaker_name 欄位。
+- [x] **API-01**: API 支援 PATCH /api/tasks/{task_id} 更新 speaker_name。
+
 ## 📝 Traceability
 
 | ID | Requirement | Phase | Status |
@@ -38,3 +42,5 @@
 | TEST-02 | Pipeline 整合測試 | 07 | Completed |
 | TEST-03 | Web UI E2E 測試 | 08 | Completed |
 | TEST-04 | 測試基礎設施 | 07 | Completed |
+| DB-01 | 說話者欄位 | 09 | Completed |
+| API-01 | PATCH 編輯 | 09 | Completed |

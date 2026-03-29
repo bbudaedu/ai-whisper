@@ -3,34 +3,35 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: Phase 08 In Progress
-last_updated: "2026-03-28T05:00:00.000Z"
+last_updated: "2026-03-29T07:44:20.659Z"
 progress:
   total_phases: 3
-  completed_phases: 1
-  total_plans: 5
-  completed_plans: 5
+  completed_phases: 2
+  total_plans: 8
+  completed_plans: 6
 ---
 
 # STATE: FaYin 全系統自動化 E2E 測試框架 (v2.0)
 
 ## Current Phase
 
-- Phase: 08-ui-e2e
-- Phase Status: Completed
-- Current Plan: 2 (completed)
-- Total Plans in Phase: 2
-- Last Updated: 2026-03-28T06:30:00Z
+- Phase: 09-refinement
+- Phase Status: In Progress
+- Current Plan: 1 (completed)
+- Total Plans in Phase: 3
+- Last Updated: 2026-03-28T08:00:00Z
 
 ## Last Session
 
 - **Date**: 2026-03-28
-- **Action**: Execute Plan 08-02 (Task Flow & Responsive)
-- **Stopped At**: Completed 08-02-PLAN.md
+- **Action**: Execute Plan 09-01 (Backend Speaker Name DB & API)
+- **Stopped At**: Completed 09-01-PLAN.md
 - **Completed**:
-    - 為 `SubmitTask.tsx` 與 `TaskTracker.tsx` 添加 `data-testid`。
-    - 實作 `task_flow.spec.ts` 驗證任務提交、追蹤與下載連結。
-    - 修正 `TaskTracker.tsx` 顯示邏輯，允許顯示「已完成」狀態任務。
-    - 驗證 Mobile Safari (iPhone 12) 響應式導覽列。
+    - 在 `pipeline/queue/models.py` 新增 `speaker_name` 欄位並索引。
+    - 執行 SQLite 遷移新增欄位。
+    - 更新 `api/schemas.py` 包含 `speaker_name` 與 `TaskUpdatePayload`。
+    - 實作 `PATCH /api/tasks/{task_id}` 端點。
+    - 通過 `tests/v2/test_task_update.py` 驗證。
 
 ## Accumulated Decisions
 
@@ -47,6 +48,9 @@ progress:
 - [Phase 08]: 使用 API Mocking 確保 UI E2E 測試的獨立性與執行速度。
 - [Phase 08]: 針對行動版 Viewport 調整定位邏輯以識別底部的 nav 元素。
 - [Phase 08]: 擴展 TaskTracker 顯示範圍至 done/failed/canceled 狀態以支持端對端驗證。
+- [Phase 09]: 在 Task 模型中新增 speaker_name 欄位並建立索引。
+- [Phase 09]: 實作 PATCH /api/tasks/{task_id} 端點以支援局部更新。
+- [Phase 09]: 更新 TaskStatusResponse 以包含 speaker_name。
 
 ## Current Blocking Issues
 
@@ -69,3 +73,4 @@ progress:
 | Phase 07 P03 | 3min | 3 tasks | 3 files |
 | Phase 08-ui-e2e P01 | 1.5h | 3 tasks | 7 files |
 | Phase 08-ui-e2e P02 | 45m | 2 tasks | 4 files |
+| Phase 09 P01 | 15m | 4 tasks | 4 files |
