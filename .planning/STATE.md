@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
-status: Phase 08 In Progress
-last_updated: "2026-03-29T07:45:41.332Z"
+status: Complete
+last_updated: "2026-03-29T08:35:00.000Z"
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # STATE: FaYin 全系統自動化 E2E 測試框架 (v2.0)
@@ -16,21 +16,21 @@ progress:
 ## Current Phase
 
 - Phase: 09-refinement
-- Phase Status: In Progress
-- Current Plan: 2 (completed)
+- Phase Status: Complete
+- Current Plan: 3 (completed)
 - Total Plans in Phase: 3
-- Last Updated: 2026-03-29T08:00:00Z
+- Last Updated: 2026-03-29T08:35:00Z
 
 ## Last Session
 
 - **Date**: 2026-03-29
-- **Action**: Execute Plan 09-02 (Frontend Speaker Name UI)
-- **Stopped At**: Completed 09-02-PLAN.md
+- **Action**: Execute Plan 09-03 (LLM Prompt Enhancement)
+- **Stopped At**: Completed 09-03-PLAN.md
 - **Completed**:
-    - 在 `TaskTracker.tsx` 實作說話者名稱編輯欄位。
-    - 支援 `onBlur` 與 `Enter` 自動呼叫 `PATCH /api/tasks/{id}`。
-    - 處理編輯中的 Loading 狀態與動畫。
-    - 實作收合時自動清除編輯暫存狀態。
+    - 優化 `auto_proofread.py` 的 Prompt 以包含講者名稱。
+    - 支援自定義 Prompt 中的 `{{speaker_name}}` 佔位符。
+    - 串接 Pipeline 將 DB 中的 `speaker_name` 傳遞至校對腳本。
+    - 新增 `tests/v2/test_pipeline_context.py` 驗證端到端參數傳遞。
 
 ## Accumulated Decisions
 
@@ -53,6 +53,8 @@ progress:
 - [Phase 09-refinement]: 使用 onBlur 與 Enter 鍵觸發 API 更新
 - [Phase 09-refinement]: 在展開列中新增編輯區塊
 - [Phase 09-refinement]: 收合時自動清除編輯狀態
+- [Phase 09-refinement]: 在 Prompt 中明確區分預設提示詞與講者資訊（speaker_section）
+- [Phase 09-refinement]: 支援自定義 Prompt 中的 {{speaker_name}} 佔位符
 
 ## Current Blocking Issues
 
@@ -64,7 +66,7 @@ progress:
 ## Milestones
 
 - [x] v1.0: Core Infrastructure & Web UI
-- [ ] v2.0: E2E Automation & Refinement (Speaker Names, Real LLM)
+- [x] v2.0: E2E Automation & Refinement (Speaker Names, Real LLM)
 
 ## Performance Metrics
 
@@ -77,3 +79,4 @@ progress:
 | Phase 08-ui-e2e P02 | 45m | 2 tasks | 4 files |
 | Phase 09 P01 | 15m | 4 tasks | 4 files |
 | Phase 09-refinement P02 | 15m | 1 tasks | 1 files |
+| Phase 09-refinement P03 | 15m | 3 tasks | 3 files |

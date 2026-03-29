@@ -24,10 +24,10 @@
 
 ### Phase 09: 說話者名稱編輯與真實 LLM 串接 (Refinement)
 擴充 v1.0 功能，支援真實人名標註與 OpenAI/Anthropic API 整合。
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 - [x] 09-01-PLAN.md — 擴充 API 與資料庫以支援 speaker_name 欄位與編輯端點。
 - [x] 09-02-PLAN.md — 更新 UI 支援在歷史記錄中編輯說話者人名。
-- [ ] 09-03-PLAN.md — 優化 AI 校對 Prompt 並串接真實 LLM。
+- [x] 09-03-PLAN.md — 優化 AI 校對 Prompt 並串接真實 LLM。
 
 ---
 *Roadmap updated: 2026-03-28 — 09-01~03 plans created (Refinement)*
