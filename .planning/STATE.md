@@ -17,21 +17,20 @@ progress:
 
 - Phase: 09-refinement
 - Phase Status: In Progress
-- Current Plan: 1 (completed)
+- Current Plan: 2 (completed)
 - Total Plans in Phase: 3
-- Last Updated: 2026-03-28T08:00:00Z
+- Last Updated: 2026-03-29T08:00:00Z
 
 ## Last Session
 
-- **Date**: 2026-03-28
-- **Action**: Execute Plan 09-01 (Backend Speaker Name DB & API)
-- **Stopped At**: Completed 09-01-PLAN.md
+- **Date**: 2026-03-29
+- **Action**: Execute Plan 09-02 (Frontend Speaker Name UI)
+- **Stopped At**: Completed 09-02-PLAN.md
 - **Completed**:
-    - 在 `pipeline/queue/models.py` 新增 `speaker_name` 欄位並索引。
-    - 執行 SQLite 遷移新增欄位。
-    - 更新 `api/schemas.py` 包含 `speaker_name` 與 `TaskUpdatePayload`。
-    - 實作 `PATCH /api/tasks/{task_id}` 端點。
-    - 通過 `tests/v2/test_task_update.py` 驗證。
+    - 在 `TaskTracker.tsx` 實作說話者名稱編輯欄位。
+    - 支援 `onBlur` 與 `Enter` 自動呼叫 `PATCH /api/tasks/{id}`。
+    - 處理編輯中的 Loading 狀態與動畫。
+    - 實作收合時自動清除編輯暫存狀態。
 
 ## Accumulated Decisions
 
