@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
 status: Phase 08 In Progress
-last_updated: "2026-03-29T07:44:20.659Z"
+last_updated: "2026-03-29T07:45:41.332Z"
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 8
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # STATE: FaYin 全系統自動化 E2E 測試框架 (v2.0)
@@ -51,6 +51,9 @@ progress:
 - [Phase 09]: 在 Task 模型中新增 speaker_name 欄位並建立索引。
 - [Phase 09]: 實作 PATCH /api/tasks/{task_id} 端點以支援局部更新。
 - [Phase 09]: 更新 TaskStatusResponse 以包含 speaker_name。
+- [Phase 09-refinement]: 使用 onBlur 與 Enter 鍵觸發 API 更新
+- [Phase 09-refinement]: 在展開列中新增編輯區塊
+- [Phase 09-refinement]: 收合時自動清除編輯狀態
 
 ## Current Blocking Issues
 
@@ -74,3 +77,4 @@ progress:
 | Phase 08-ui-e2e P01 | 1.5h | 3 tasks | 7 files |
 | Phase 08-ui-e2e P02 | 45m | 2 tasks | 4 files |
 | Phase 09 P01 | 15m | 4 tasks | 4 files |
+| Phase 09-refinement P02 | 15m | 1 tasks | 1 files |
