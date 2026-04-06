@@ -7,11 +7,11 @@
   "whisper_model": "large-v2",
   "whisper_lang": "Chinese",
   "whisper_prompt": "佛教公案選集 不要標點符號 ",
-  "email_to": "tyguo@budaedu.org",
+  "email_to": "YOUR_EMAIL@example.com",
   "playlist_url": "https://www.youtube.com/playlist?list=PLpyk9ZaUyAgGLftJLKQQefuK0bDV3iV73",
   "nas_output_base": "/mnt/nas/Whisper_auto_rum",
   "external_output_base": "/mnt/nas/Whisper_auto_rum/EXTERNAL",
-  "api_base_url": "http://192.168.100.200:8317/v1/chat/completions",
+  "api_base_url": "http://YOUR_LOCAL_IP_OR_DOMAIN:8317/v1/chat/completions",
   "api_key": "YOUR_API_KEY_HERE",
   "proofread_chunk_size": 100,
   "punct_chunk_size": 120,
@@ -89,8 +89,8 @@
   "notebooklm": {
     "enabled": true,
     "mcp_package": "/mnt/nas/workspaces/notebooklm-mcp",
-    "login_email": "bbudaedu1@gmail.com",
-    "notebook_url": "https://notebooklm.google.com/notebook/e42a1d40-e5ea-4d8c-8f2e-6fc06efb391a",
+    "login_email": "YOUR_ACCOUNT@gmail.com",
+    "notebook_url": "https://notebooklm.google.com/notebook/YOUR_NOTEBOOK_ID",
     "daily_quota_per_account": 50,
     "output_tasks": [
       "summary",
@@ -104,7 +104,7 @@
     "auto_trigger_after_report": false,
     "output_subdir": "notebooklm"
   },
-  "notification_email": "bbudaedu@gmail.com",
+  "notification_email": "YOUR_NOTIFICATION_EMAIL@example.com",
   "jwt_secret": "YOUR_JWT_SECRET_HERE",
   "google_client_id": "YOUR_GOOGLE_CLIENT_ID_HERE",
   "google_client_secret": "YOUR_GOOGLE_CLIENT_SECRET_HERE",
