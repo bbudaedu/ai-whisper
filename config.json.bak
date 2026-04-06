@@ -1,0 +1,29 @@
+{
+  "proofread_model": "gemini-3-flash",
+  "lecture_pdf": "/mnt/nas/Whisper_auto_rum/T097V/CH857-03-01-001.pdf",
+  "whisper_model": "large-v2",
+  "whisper_lang": "Chinese",
+  "whisper_prompt": "佛教公案選集 不要標點符號 ",
+  "email_to": "tyguo@budaedu.org",
+  "playlist_url": "https://www.youtube.com/playlist?list=PLpyk9ZaUyAgGLftJLKQQefuK0bDV3iV73",
+  "nas_output_base": "/mnt/nas/Whisper_auto_rum/T097V",
+  "api_base_url": "http://192.168.100.201:8045/v1/chat/completions",
+  "api_key": "sk-8f3999c2452d4124835ffaff469e22af",
+  "proofread_chunk_size": 100,
+  "punct_chunk_size": 120,
+  "playlists": [
+    {
+      "id": "pl_1772509672607",
+      "name": "2025年莫哥禪法及緣起輪圖解說",
+      "url": "https://www.youtube.com/playlist?list=PLpyk9ZaUyAgGGDF6zMLZRbeVnkmfJzNjk",
+      "output_dir": "/mnt/nas/Whisper_auto_rum/test",
+      "whisper_model": "large-v2",
+      "enabled": true,
+      "schedule": "daily",
+      "added_at": "2026-03-03T11:48:33.264522",
+      "whisper_lang": "auto",
+      "whisper_prompt": "莫哥禪法 緬甸語與中文現場翻譯 佛教公案選集 不要標點符號",
+      "lecture_pdf": "/mnt/nas/Whisper_auto_rum/T097V/CH857-03-01-001.pdf"
+    }
+  ]
+}
