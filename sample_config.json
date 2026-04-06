@@ -1,0 +1,112 @@
+{
+  "proofread_model": [
+    "gemini-3-flash",
+    "gemini-3-flash-preview"
+  ],
+  "lecture_pdf": "/mnt/nas/Whisper_auto_rum/T097V/CH857-03-01-001.pdf",
+  "whisper_model": "large-v2",
+  "whisper_lang": "Chinese",
+  "whisper_prompt": "佛教公案選集 不要標點符號 ",
+  "email_to": "tyguo@budaedu.org",
+  "playlist_url": "https://www.youtube.com/playlist?list=PLpyk9ZaUyAgGLftJLKQQefuK0bDV3iV73",
+  "nas_output_base": "/mnt/nas/Whisper_auto_rum",
+  "external_output_base": "/mnt/nas/Whisper_auto_rum/EXTERNAL",
+  "api_base_url": "http://192.168.100.200:8317/v1/chat/completions",
+  "api_key": "YOUR_API_KEY_HERE",
+  "proofread_chunk_size": 100,
+  "punct_chunk_size": 120,
+  "playlists": [
+    {
+      "id": "pl_1772509672607",
+      "name": "2025年莫哥禪法及緣起輪圖解說",
+      "url": "https://www.youtube.com/playlist?list=PLpyk9ZaUyAgGGDF6zMLZRbeVnkmfJzNjk",
+      "whisper_model": "large-v3",
+      "enabled": true,
+      "track": false,
+      "schedule": "daily",
+      "added_at": "2026-03-03T11:48:33.264522",
+      "whisper_lang": "auto",
+      "whisper_prompt": "莫哥禪法, 長老, 巴利文, 緬甸語, 南傳佛教",
+      "lecture_pdf": "",
+      "folder_prefix": "T097S",
+      "status": "idle",
+      "batch_size": 5,
+      "total_videos": 19,
+      "processed_count": 19,
+      "proofread_prompt": "你是一個佛學大師，精通經律論三藏十二部經典，以下文本是whisper產生的字幕文本，關於佛學課程內容，有很多同音字聽打錯誤，幫我依據我提供的上課講義校對文本，嚴格依照以下規則，直接修正錯誤：\n\n1.這是講座字幕的文本，依照原本的用字遣詞斷句輸出，重複內容不能省略，不然字幕會出錯混亂\n2.不要加標點符號\n3.輸出繁體中文\n\n{{lecture_section}}\n\n以下是需要校對的字幕文本，格式是 [序號] 文字：\n<字幕>\n{{srt_text}}\n</字幕>\n\n請直接輸出校對後的結果，格式完全相同（[序號] 校對後文字），不要有任何說明。\n"
+    },
+    {
+      "id": "pl_1772782359239",
+      "name": "佛教禪修初階精進 ",
+      "url": "https://www.youtube.com/watch?v=a6CwYxJXR0w",
+      "added_at": "2026-03-06T16:26:48.611743",
+      "processed_count": 1,
+      "folder_prefix": "T098F",
+      "total_videos": 1,
+      "status": "running",
+      "track": false,
+      "proofread_prompt": "你是一個佛學大師，精通經律論三藏十二部經典，以下文本是whisper產生的字幕文本，關於佛學課程內容，有很多同音字聽打錯誤，幫我依據我提供的上課講義校對文本，嚴格依照以下規則，直接修正錯誤：\n\n1.這是講座字幕的文本，依照原本的用字遣詞斷句輸出，重複內容不能省略，不然字幕會出錯混亂\n2.不要加標點符號\n3.輸出繁體中文\n\n{{lecture_section}}\n\n以下是需要校對的字幕文本，格式是 [序號] 文字：\n<字幕>\n{{srt_text}}\n</字幕>\n\n請直接輸出校對後的結果，格式完全相同（[序號] 校對後文字），不要有任何說明。\n",
+      "enabled": true,
+      "schedule": "daily"
+    },
+    {
+      "id": "__legacy__",
+      "name": "佛教公案選集",
+      "url": "https://www.youtube.com/playlist?list=PLpyk9ZaUyAgGLftJLKQQefuK0bDV3iV73",
+      "folder_prefix": "T097V",
+      "status": "running",
+      "enabled": true,
+      "track": true,
+      "processed_count": 22,
+      "total_videos": 22,
+      "whisper_model": "large-v2",
+      "whisper_lang": "Chinese",
+      "whisper_prompt": "佛教公案選集 不要標點符號 ",
+      "proofread_prompt": "你是一個佛學大師，精通經律論三藏十二部經典，以下文本是whisper產生的字幕文本，關於佛學課程內容，有很多同音字聽打錯誤，幫我依據我提供的上課講義校對文本，嚴格依照以下規則，直接修正錯誤：\n\n1.這是講座字幕的文本，依照原本的用字遣詞斷句輸出，重複內容不能省略，不然字幕會出錯混亂\n2.不要加標點符號\n3.輸出繁體中文\n\n{{lecture_section}}\n\n以下是需要校對的字幕文本，格式是 [序號] 文字：\n<字幕>\n{{srt_text}}\n</字幕>\n\n請直接輸出校對後的結果，格式完全相同（[序號] 校對後文字），不要有任何說明。\n",
+      "lecture_pdf": "",
+      "batch_size": 5,
+      "schedule": "daily"
+    },
+    {
+      "id": "pl_1773208849707",
+      "name": "（學院第五屆）禪宗─認識禪宗與修學坐禪之方便法-簡豐文居士",
+      "url": "https://youtube.com/playlist?list=PLpyk9ZaUyAgFA6QZ-Au-FB0cLgAUGK0NP&si=h-cmgvNmrKKX-d1k",
+      "output_dir": "",
+      "added_at": "2026-03-11T14:06:40.637511",
+      "processed_count": 7,
+      "folder_prefix": "T069U",
+      "track": true,
+      "status": "running",
+      "total_videos": 7,
+      "enabled": true,
+      "schedule": "daily"
+    }
+  ],
+  "punctuation_model": [
+    "Gemini 3.1 Flash Lite Preview",
+    "gemini-3.1-flash-lite-preview"
+  ],
+  "notebooklm": {
+    "enabled": true,
+    "mcp_package": "/mnt/nas/workspaces/notebooklm-mcp",
+    "login_email": "bbudaedu1@gmail.com",
+    "notebook_url": "https://notebooklm.google.com/notebook/e42a1d40-e5ea-4d8c-8f2e-6fc06efb391a",
+    "daily_quota_per_account": 50,
+    "output_tasks": [
+      "summary",
+      "mindmap",
+      "presentation",
+      "faq",
+      "glossary",
+      "studio_audio",
+      "studio_mindmap"
+    ],
+    "auto_trigger_after_report": false,
+    "output_subdir": "notebooklm"
+  },
+  "notification_email": "bbudaedu@gmail.com",
+  "jwt_secret": "YOUR_JWT_SECRET_HERE",
+  "google_client_id": "YOUR_GOOGLE_CLIENT_ID_HERE",
+  "google_client_secret": "YOUR_GOOGLE_CLIENT_SECRET_HERE",
+  "session_secret_key": "YOUR_SESSION_SECRET_HERE"
+}

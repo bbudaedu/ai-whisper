@@ -30,7 +30,7 @@ cookies.txt
 
 # Large output files (kept on NAS, not in repo)
 *.json
-!config.json
+!sample_config.json
 !package.json
 !package-lock.json
 
