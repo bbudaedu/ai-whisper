@@ -113,12 +113,44 @@ def run_aligner_task(file1_path, file2_path, dict_filepath, output_path, log_cal
         aligned1, aligned2 = align_sequences(lines1, lines2)
         log_callback("✅ 對齊完成！")
         
-        df = pd.DataFrame({'whisper': aligned1, 'gemini': aligned2})
-        
         log_callback("\n⚙️ 開始進行Excel後處理...")
+        # 統計資訊
+        missing_count = 0
+        corrected_count = 0
+        missing_list = [] # (序號, 內容)
+        
+        # 1. 識別遺漏句 (Gemini 為空之處)
+        for idx, (w, g) in enumerate(zip(aligned1, aligned2)):
+            if w != '' and g == '':
+                missing_count += 1
+                missing_list.append((idx + 1, w))
+        
+        # 2. 識別校對句 (Whisper 與 Gemini 不同且 Gemini 不為空之處)
+        gemini_omissions = []
+        gemini_corrections = []
+        for w, g in zip(aligned1, aligned2):
+            if w != '' and g != '' and w != g:
+                corrected_count += 1
+                gemini_omissions.append("")
+                gemini_corrections.append(g)
+            elif w != '' and g == '':
+                gemini_omissions.append(w)
+                gemini_corrections.append("")
+            else:
+                gemini_omissions.append("")
+                gemini_corrections.append("")
+
+        df = pd.DataFrame({
+            'whisper': aligned1, 
+            'gemini': aligned2,
+            'Gemini遺漏句': gemini_omissions,
+            'Gemini校對句': gemini_corrections
+        })
         df = df[df['whisper'] != ''].copy()
         df.loc[df['gemini'] == '', 'gemini'] = df['whisper']
         log_callback(f"  - 規則處理完成。")
+        log_callback(f"  - 發現 Gemini 遺漏句: {missing_count} 句")
+        log_callback(f"  - 發現 Gemini 校對句: {corrected_count} 句")
 
         final_lines_count = len(df)
         log_callback("\n📊 進行句數檢查...")
@@ -134,16 +166,42 @@ def run_aligner_task(file1_path, file2_path, dict_filepath, output_path, log_cal
             
             with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
                 df.to_excel(writer, sheet_name='校對文本', index=False)
+                # 原始統計
                 summary_df = pd.DataFrame([("總處理行數", stats['total_rows']), ("修改行數", stats['changed_rows']), ("總替換次數", stats['total_replacements'])])
                 usage_df = pd.DataFrame(stats['usage_stats'].most_common(), columns=["替換規則", "次數"])
                 modified_rows_df = pd.DataFrame(stats['modified_row_numbers'], columns=["被修改行號(Excel)"])
                 summary_df.to_excel(writer, sheet_name='校對字典統計', index=False, header=False, startrow=0)
                 usage_df.to_excel(writer, sheet_name='校對字典統計', index=False, startrow=len(summary_df) + 2)
                 modified_rows_df.to_excel(writer, sheet_name='校對字典統計', index=False, startrow=len(summary_df) + len(usage_df) + 4)
+                
+                # Gemini 專屬統計
+                gemini_stats_df = pd.DataFrame([
+                    ("Gemini 總句數", initial_lines1_count),
+                    ("Gemini 遺漏句數", missing_count),
+                    ("Gemini 校對句數", corrected_count),
+                    ("遺漏率", f"{(missing_count/initial_lines1_count*100):.2f}%" if initial_lines1_count > 0 else "0%"),
+                    ("校對率", f"{(corrected_count/initial_lines1_count*100):.2f}%" if initial_lines1_count > 0 else "0%")
+                ])
+                missing_detail_df = pd.DataFrame(missing_list, columns=["原始序號", "遺漏內容 (Whisper)"])
+                gemini_stats_df.to_excel(writer, sheet_name='Gemini校對統計', index=False, header=False, startrow=0)
+                missing_detail_df.to_excel(writer, sheet_name='Gemini校對統計', index=False, startrow=len(gemini_stats_df) + 2)
+                
             final_message = "對齊與校對成功！"
         else:
             log_callback("\n未提供字典，僅執行對齊。")
-            df.to_excel(output_path, index=False, sheet_name='校對文本')
+            with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
+                df.to_excel(writer, index=False, sheet_name='校對文本')
+                # Gemini 專屬統計 (即使沒有字典也要輸出)
+                gemini_stats_df = pd.DataFrame([
+                    ("Gemini 總句數", initial_lines1_count),
+                    ("Gemini 遺漏句數", missing_count),
+                    ("Gemini 校對句數", corrected_count),
+                    ("遺漏率", f"{(missing_count/initial_lines1_count*100):.2f}%" if initial_lines1_count > 0 else "0%"),
+                    ("校對率", f"{(corrected_count/initial_lines1_count*100):.2f}%" if initial_lines1_count > 0 else "0%")
+                ])
+                missing_detail_df = pd.DataFrame(missing_list, columns=["原始序號", "遺漏內容 (Whisper)"])
+                gemini_stats_df.to_excel(writer, sheet_name='Gemini校對統計', index=False, header=False, startrow=0)
+                missing_detail_df.to_excel(writer, sheet_name='Gemini校對統計', index=False, startrow=len(gemini_stats_df) + 2)
             final_message = "對齊成功！"
         
         log_callback("\n🎨 正在自動調整欄位寬度...")

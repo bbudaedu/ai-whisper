@@ -30,7 +30,8 @@ class ResilientAPIClient:
     ):
         self.api_base_url = api_base_url
         self.api_key = api_key
-        self.model = model
+        # 支援傳入單一字串或模型清單 (Fallback Chain)
+        self.models = [model] if isinstance(model, str) else list(model)
         self.max_retries = max_retries
         self.base_delay = base_delay
         self.max_delay = max_delay
@@ -48,7 +49,7 @@ class ResilientAPIClient:
         self._pause_duration = 900  # 暫停 15 分鐘
 
     def call(self, prompt, max_tokens=8192):
-        """送出 LLM API 請求，帶指數退避重試。
+        """送出 LLM API 請求，支援多模型回退 (Fallback Chain) 與指數退避。
 
         Returns:
             str: API 回應文字，失敗回傳 None。
@@ -58,74 +59,70 @@ class ResilientAPIClient:
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}",
         }
-        payload = {
-            "model": self.model,
-            "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": max_tokens,
-        }
 
-        for attempt in range(self.max_retries):
-            try:
-                resp = requests.post(
-                    self.api_base_url,
-                    headers=headers,
-                    json=payload,
-                    timeout=self.timeout,
-                )
-                resp.raise_for_status()
-                data = resp.json()
-                message = data["choices"][0]["message"]
-                content = message.get("content", "")
-                reasoning = message.get("reasoning_content", "")
-                result_text = content if content else reasoning
+        for model_idx, model_id in enumerate(self.models):
+            logger.info(f"正在嘗試模型 ({model_idx + 1}/{len(self.models)}): {model_id}")
+            payload = {
+                "model": model_id,
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": max_tokens,
+            }
 
-                # 成功 → 重置 circuit breaker
-                self.consecutive_failures = 0
-                self._circuit_open = False
-                return result_text
+            for attempt in range(self.max_retries):
+                try:
+                    resp = requests.post(
+                        self.api_base_url,
+                        headers=headers,
+                        json=payload,
+                        timeout=self.timeout,
+                    )
+                    resp.raise_for_status()
+                    data = resp.json()
+                    message = data["choices"][0]["message"]
+                    content = message.get("content", "")
+                    reasoning = message.get("reasoning_content", "")
+                    result_text = content if content else reasoning
 
-            except requests.exceptions.HTTPError as e:
-                status_code = e.response.status_code if e.response is not None else 0
-                is_retryable = status_code in (429, 500, 502, 503, 504)
+                    # 成功 → 重置 circuit breaker
+                    self.consecutive_failures = 0
+                    self._circuit_open = False
+                    return result_text
 
-                if not is_retryable:
-                    logger.error(f"不可重試的 HTTP 錯誤 {status_code}: {e}")
-                    self._record_failure()
-                    return None
+                except requests.exceptions.HTTPError as e:
+                    status_code = e.response.status_code if e.response is not None else 0
+                    is_retryable = status_code in (429, 500, 502, 503, 504)
 
-                delay = self._get_delay(attempt)
-                logger.warning(
-                    f"HTTP {status_code} (第 {attempt + 1}/{self.max_retries} 次) "
-                    f"— 等待 {delay:.0f} 秒後重試"
-                )
-                self.total_retries += 1
-                time.sleep(delay)
+                    if not is_retryable:
+                        logger.error(f"模型 {model_id} 不可重試的 HTTP 錯誤 {status_code}: {e}")
+                        break  # 跳出重試循環，嘗試下一個模型 (或結束)
 
-            except requests.exceptions.Timeout:
-                delay = self._get_delay(attempt)
-                logger.warning(
-                    f"API 逾時 (第 {attempt + 1}/{self.max_retries} 次) "
-                    f"— 等待 {delay:.0f} 秒後重試"
-                )
-                self.total_retries += 1
-                time.sleep(delay)
+                    delay = self._get_delay(attempt)
+                    logger.warning(
+                        f"模型 {model_id} HTTP {status_code} (第 {attempt + 1}/{self.max_retries} 次) "
+                        f"— 等待 {delay:.0f} 秒後重試"
+                    )
+                    self.total_retries += 1
+                    time.sleep(delay)
 
-            except requests.exceptions.ConnectionError:
-                delay = self._get_delay(attempt)
-                logger.warning(
-                    f"連線失敗 (第 {attempt + 1}/{self.max_retries} 次) "
-                    f"— 等待 {delay:.0f} 秒後重試"
-                )
-                self.total_retries += 1
-                time.sleep(delay)
+                except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+                    delay = self._get_delay(attempt)
+                    logger.warning(
+                        f"模型 {model_id} 網路錯誤 {type(e).__name__} (第 {attempt + 1}/{self.max_retries} 次) "
+                        f"— 等待 {delay:.0f} 秒後重試"
+                    )
+                    self.total_retries += 1
+                    time.sleep(delay)
 
-            except Exception as e:
-                logger.error(f"未預期錯誤: {e}")
-                self._record_failure()
-                return None
+                except Exception as e:
+                    logger.error(f"模型 {model_id} 發生未預期錯誤: {e}")
+                    break  # 跳出重試循環
 
-        # 所有重試用盡
-        logger.error(f"API 呼叫失敗，已重試 {self.max_retries} 次")
+            logger.warning(f"模型 {model_id} 已耗盡重試次數或發生嚴重錯誤。")
+            if model_idx < len(self.models) - 1:
+                logger.info(f"🔄 觸發回退機制，嘗試下一個模型...")
+            
+        # 所有模型與重試均失敗
+        logger.error(f"所有備選模型 ({len(self.models)} 個) 均呼叫失敗。")
         self._record_failure()
         return None
 
@@ -171,6 +168,7 @@ class ResilientAPIClient:
 
         # 暫停
         logger.info(f"暫停 {self._pause_duration // 60} 分鐘...")
+        # 確保暫停時間內不會繼續執行請求，應由外部控制或在此阻塞
         time.sleep(self._pause_duration)
 
         # 暫停結束，重置計數器給予再一次機會

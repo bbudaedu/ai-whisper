@@ -1,0 +1,1329 @@
+INFO:     Started server process [3465077]
+INFO:     Waiting for application startup.
+2026-03-25 10:43:41,777 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 10:43:41,778 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8002 (Press CTRL+C to quit)
+2026-03-25 10:43:42,701 - INFO - 播放清單共有 1 部影片
+2026-03-25 10:43:42,709 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 0/1)
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61896 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54650 - "GET /api/dashboard HTTP/1.1" 200 OK
+2026-03-25 10:44:00,854 - INFO - 已 claim stage task #13: stage=StageType.TRANSCRIBE, task_id=5, source=TaskSource.EXTERNAL
+2026-03-25 10:44:00,854 - INFO - 已取得 GPU 鎖
+2026-03-25 10:44:00,857 - INFO - 正在執行 faster-whisper 辨識: 佛教禪修初階精進 心傳法師 001__a6CwYxJXR0w
+2026-03-25 10:44:00,857 - INFO - 載入 faster-whisper 模型: large-v3 (float16, CUDA)
+2026-03-25 10:44:09,021 - INFO - 使用模型: large-v3, 語言: Auto, Prompt: 
+2026-03-25 10:44:10,173 - INFO - Processing audio with duration 03:01:11.232
+2026-03-25 10:44:42,787 - INFO - VAD filter removed 08:09.344 of audio
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64264 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59220 - "GET /api/dashboard HTTP/1.1" 200 OK
+2026-03-25 10:44:58,362 - INFO - Detected language 'zh' with probability 0.99
+INFO:     192.168.100.1:49480 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64206 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51943 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64641 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64332 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63406 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51118 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57497 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56161 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63543 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59277 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61193 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 10:51:15,467 - INFO - 辨識完成，共 6364 段，語言: zh (機率: 0.99)
+2026-03-25 10:51:15,530 - INFO - 輸出 SRT: /mnt/nas/Whisper_auto_rum/T097V/T097V001/佛教禪修初階精進 心傳法師 001__a6CwYxJXR0w.srt
+2026-03-25 10:51:15,530 - INFO - 輸出 TXT: /mnt/nas/Whisper_auto_rum/T097V/T097V001/佛教禪修初階精進 心傳法師 001__a6CwYxJXR0w.txt
+2026-03-25 10:51:15,531 - INFO - Transcribe stage 完成: srt=/mnt/nas/Whisper_auto_rum/T097V/T097V001/佛教禪修初階精進 心傳法師 001__a6CwYxJXR0w.srt
+2026-03-25 10:51:15,676 - INFO - Stage #13 (StageType.TRANSCRIBE) 完成
+2026-03-25 10:51:15,718 - INFO - Fan-out: stage #13 (StageType.TRANSCRIBE) 完成 → 建立 stage #14 (StageType.PROOFREAD)
+2026-03-25 10:51:15,719 - INFO - 已釋放 GPU 鎖
+INFO:     192.168.100.1:63910 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51389 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55083 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52243 - "GET /api/dashboard HTTP/1.1" 200 OK
+2026-03-25 10:53:42,718 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 10:53:42,721 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 10:53:44,220 - INFO - 播放清單共有 1 部影片
+2026-03-25 10:53:44,238 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 0/1)
+INFO:     192.168.100.1:50396 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59083 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54046 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57583 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53849 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54225 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52787 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57614 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64665 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56574 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50737 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60866 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:65264 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62435 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49984 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57493 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50249 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54129 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63321 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53960 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 11:03:44,239 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 11:03:44,239 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 11:03:45,232 - INFO - 播放清單共有 1 部影片
+2026-03-25 11:03:45,238 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 0/1)
+INFO:     192.168.100.1:53394 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58392 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49210 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50484 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60946 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58773 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55013 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52973 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51909 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57334 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56801 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56196 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61771 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61541 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59672 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61850 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60442 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51201 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58460 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:65355 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 11:13:45,240 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 11:13:45,240 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 11:13:46,210 - INFO - 播放清單共有 1 部影片
+2026-03-25 11:13:46,214 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 0/1)
+INFO:     192.168.100.1:50749 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56664 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51445 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63623 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:65001 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49462 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50862 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63720 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54789 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58141 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49492 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56652 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64235 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58176 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59872 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54318 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61821 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61645 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56653 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60957 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 11:23:46,216 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 11:23:46,216 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 11:23:47,175 - INFO - 播放清單共有 1 部影片
+2026-03-25 11:23:47,181 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 0/1)
+INFO:     192.168.100.1:49489 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61353 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52877 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62210 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63809 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57720 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55845 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59001 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61952 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64219 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53905 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56324 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53297 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61147 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61408 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56416 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 11:31:41,459 - INFO - 已 claim stage task #15: stage=StageType.POSTPROCESS, task_id=5, source=TaskSource.EXTERNAL
+2026-03-25 11:31:42,486 - INFO - ============================================================
+2026-03-25 11:31:42,486 - INFO - 開始排版與文件生成作業: 佛教禪修初階精進 心傳法師 001__a6CwYxJXR0w
+2026-03-25 11:31:42,486 - INFO - ============================================================
+2026-03-25 11:31:42,486 - INFO - 解析 SRT 時間軸...
+2026-03-25 11:31:42,522 - INFO - 執行 Whisper 與 Gemini 文本對齊...
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54536 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54829 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64919 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52438 - "GET /api/dashboard HTTP/1.1" 200 OK
+2026-03-25 11:33:28,786 - INFO - 產生「給學員校對」分組時間區塊...
+2026-03-25 11:33:28,812 - INFO - ✅ Excel 核心資料寫入完成
+2026-03-25 11:33:29,761 - INFO - ✅ Excel 欄寬自動調整完成: /mnt/nas/Whisper_auto_rum/T097V/T097V001/佛教禪修初階精進 心傳法師 001__a6CwYxJXR0w.xlsx
+2026-03-25 11:33:29,761 - INFO - 生成 Docx 文件...
+2026-03-25 11:33:30,098 - INFO - ✅ Docx (給學員校對) 建立成功: /mnt/nas/Whisper_auto_rum/T097V/T097V001/佛教禪修初階精進_心傳法師_001給學員校對.docx
+2026-03-25 11:33:30,098 - INFO - 正在生成 AI 標點排版校對文本...
+2026-03-25 11:33:30,098 - INFO - 開始 AI 自動排版與標點，共 6364 句
+2026-03-25 11:33:30,098 - INFO - 正在處理 AI 標點排版批次 1/54 (120 句)
+2026-03-25 11:33:30,099 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:33:35,440 - INFO - 正在處理 AI 標點排版批次 2/54 (120 句)
+2026-03-25 11:33:35,440 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:33:40,291 - INFO - 正在處理 AI 標點排版批次 3/54 (120 句)
+2026-03-25 11:33:40,291 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:33:45,019 - INFO - 正在處理 AI 標點排版批次 4/54 (120 句)
+2026-03-25 11:33:45,020 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:33:47,182 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 11:33:47,183 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 11:33:48,382 - INFO - 播放清單共有 1 部影片
+2026-03-25 11:33:48,386 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 0/1)
+2026-03-25 11:33:49,387 - INFO - 正在處理 AI 標點排版批次 5/54 (120 句)
+2026-03-25 11:33:49,387 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:33:53,991 - INFO - 正在處理 AI 標點排版批次 6/54 (120 句)
+2026-03-25 11:33:53,991 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+INFO:     192.168.100.1:52031 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63107 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 11:33:58,983 - INFO - 正在處理 AI 標點排版批次 7/54 (120 句)
+2026-03-25 11:33:58,983 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:34:07,601 - INFO - 正在處理 AI 標點排版批次 8/54 (120 句)
+2026-03-25 11:34:07,601 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:34:12,521 - INFO - 正在處理 AI 標點排版批次 9/54 (120 句)
+2026-03-25 11:34:12,521 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:34:22,025 - INFO - 正在處理 AI 標點排版批次 10/54 (120 句)
+2026-03-25 11:34:22,025 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:34:26,822 - INFO - 正在處理 AI 標點排版批次 11/54 (120 句)
+2026-03-25 11:34:26,822 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:34:31,392 - INFO - 正在處理 AI 標點排版批次 12/54 (120 句)
+2026-03-25 11:34:31,392 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:34:36,515 - INFO - 正在處理 AI 標點排版批次 13/54 (120 句)
+2026-03-25 11:34:36,516 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:34:41,536 - INFO - 正在處理 AI 標點排版批次 14/54 (120 句)
+2026-03-25 11:34:41,536 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:34:50,942 - INFO - 正在處理 AI 標點排版批次 15/54 (120 句)
+2026-03-25 11:34:50,942 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+INFO:     192.168.100.1:64212 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59082 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 11:34:55,242 - INFO - 正在處理 AI 標點排版批次 16/54 (120 句)
+2026-03-25 11:34:55,242 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:34:59,289 - INFO - 正在處理 AI 標點排版批次 17/54 (120 句)
+2026-03-25 11:34:59,289 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:35:04,157 - INFO - 正在處理 AI 標點排版批次 18/54 (120 句)
+2026-03-25 11:35:04,157 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:35:14,159 - INFO - 正在處理 AI 標點排版批次 19/54 (120 句)
+2026-03-25 11:35:14,159 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:35:18,290 - INFO - 正在處理 AI 標點排版批次 20/54 (120 句)
+2026-03-25 11:35:18,290 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:35:23,980 - INFO - 正在處理 AI 標點排版批次 21/54 (120 句)
+2026-03-25 11:35:23,980 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:35:28,558 - INFO - 正在處理 AI 標點排版批次 22/54 (120 句)
+2026-03-25 11:35:28,558 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:35:32,807 - INFO - 正在處理 AI 標點排版批次 23/54 (120 句)
+2026-03-25 11:35:32,807 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:35:37,351 - INFO - 正在處理 AI 標點排版批次 24/54 (120 句)
+2026-03-25 11:35:37,351 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:35:41,703 - INFO - 正在處理 AI 標點排版批次 25/54 (120 句)
+2026-03-25 11:35:41,703 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:35:46,207 - INFO - 正在處理 AI 標點排版批次 26/54 (120 句)
+2026-03-25 11:35:46,207 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:35:50,821 - INFO - 正在處理 AI 標點排版批次 27/54 (120 句)
+2026-03-25 11:35:50,821 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+INFO:     192.168.100.1:60531 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52706 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 11:35:56,159 - INFO - 正在處理 AI 標點排版批次 28/54 (120 句)
+2026-03-25 11:35:56,159 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:36:00,561 - INFO - 正在處理 AI 標點排版批次 29/54 (120 句)
+2026-03-25 11:36:00,562 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:36:04,961 - INFO - 正在處理 AI 標點排版批次 30/54 (120 句)
+2026-03-25 11:36:04,961 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:36:09,715 - INFO - 正在處理 AI 標點排版批次 31/54 (120 句)
+2026-03-25 11:36:09,716 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:36:15,012 - INFO - 正在處理 AI 標點排版批次 32/54 (120 句)
+2026-03-25 11:36:15,012 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:36:19,540 - INFO - 正在處理 AI 標點排版批次 33/54 (120 句)
+2026-03-25 11:36:19,540 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:36:24,019 - INFO - 正在處理 AI 標點排版批次 34/54 (120 句)
+2026-03-25 11:36:24,019 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:36:29,206 - INFO - 正在處理 AI 標點排版批次 35/54 (120 句)
+2026-03-25 11:36:29,206 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:36:34,834 - INFO - 正在處理 AI 標點排版批次 36/54 (120 句)
+2026-03-25 11:36:34,834 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:36:39,700 - INFO - 正在處理 AI 標點排版批次 37/54 (120 句)
+2026-03-25 11:36:39,700 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:36:44,459 - INFO - 正在處理 AI 標點排版批次 38/54 (120 句)
+2026-03-25 11:36:44,459 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:36:49,058 - INFO - 正在處理 AI 標點排版批次 39/54 (120 句)
+2026-03-25 11:36:49,058 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:36:53,602 - INFO - 正在處理 AI 標點排版批次 40/54 (120 句)
+2026-03-25 11:36:53,602 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+INFO:     192.168.100.1:52503 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52503 - "GET /api/dashboard HTTP/1.1" 200 OK
+2026-03-25 11:36:58,313 - INFO - 正在處理 AI 標點排版批次 41/54 (120 句)
+2026-03-25 11:36:58,313 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:37:02,733 - INFO - 正在處理 AI 標點排版批次 42/54 (120 句)
+2026-03-25 11:37:02,733 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:37:07,553 - INFO - 正在處理 AI 標點排版批次 43/54 (120 句)
+2026-03-25 11:37:07,553 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:37:13,994 - INFO - 正在處理 AI 標點排版批次 44/54 (120 句)
+2026-03-25 11:37:13,994 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:37:19,135 - INFO - 正在處理 AI 標點排版批次 45/54 (120 句)
+2026-03-25 11:37:19,135 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:37:24,793 - INFO - 正在處理 AI 標點排版批次 46/54 (120 句)
+2026-03-25 11:37:24,793 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:37:30,845 - INFO - 正在處理 AI 標點排版批次 47/54 (120 句)
+2026-03-25 11:37:30,845 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:37:36,396 - INFO - 正在處理 AI 標點排版批次 48/54 (120 句)
+2026-03-25 11:37:36,396 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:37:40,637 - INFO - 正在處理 AI 標點排版批次 49/54 (120 句)
+2026-03-25 11:37:40,637 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:37:45,521 - INFO - 正在處理 AI 標點排版批次 50/54 (120 句)
+2026-03-25 11:37:45,521 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:37:50,547 - INFO - 正在處理 AI 標點排版批次 51/54 (120 句)
+2026-03-25 11:37:50,547 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+INFO:     192.168.100.1:64495 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63632 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 11:37:56,402 - INFO - 正在處理 AI 標點排版批次 52/54 (120 句)
+2026-03-25 11:37:56,402 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:38:00,602 - INFO - 正在處理 AI 標點排版批次 53/54 (120 句)
+2026-03-25 11:38:00,602 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:38:04,890 - INFO - 正在處理 AI 標點排版批次 54/54 (4 句)
+2026-03-25 11:38:04,890 - INFO - 正在嘗試模型 (1/2): Gemini 3.1 Flash Lite Preview
+2026-03-25 11:38:06,263 - INFO - ✅ Docx (AI 校對文本) 建立成功: /mnt/nas/Whisper_auto_rum/T097V/T097V001/佛教禪修初階精進_心傳法師_001校對文本.docx
+2026-03-25 11:38:06,264 - INFO - Postprocess stage 完成: excel=/mnt/nas/Whisper_auto_rum/T097V/T097V001/佛教禪修初階精進 心傳法師 001__a6CwYxJXR0w.xlsx
+2026-03-25 11:38:06,272 - INFO - Stage #15 (StageType.POSTPROCESS) 完成
+2026-03-25 11:38:06,276 - INFO - Task #5 所有 stage 完成，狀態更新為 DONE
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61220 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50834 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61714 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64633 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49970 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57147 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56836 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61973 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49348 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57010 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 11:43:48,388 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 11:43:48,388 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 11:43:49,383 - INFO - 播放清單共有 1 部影片
+2026-03-25 11:43:49,387 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 1/1)
+INFO:     192.168.100.1:61303 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57308 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51813 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58707 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63391 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50647 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54143 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54890 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63192 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51798 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60490 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58600 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57327 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59498 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55459 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64075 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49782 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57162 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63760 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53223 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 11:53:49,388 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 11:53:49,388 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 11:53:50,436 - INFO - 播放清單共有 1 部影片
+2026-03-25 11:53:50,439 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 1/1)
+INFO:     192.168.100.1:62837 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58098 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60250 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61252 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63088 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60891 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57218 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49788 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62507 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53234 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53184 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58198 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56977 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54866 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63265 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53623 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62611 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55546 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54932 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58272 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 12:03:50,440 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 12:03:50,441 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 12:03:51,370 - INFO - 播放清單共有 1 部影片
+2026-03-25 12:03:51,376 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 1/1)
+INFO:     192.168.100.1:50196 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51898 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59470 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57497 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61111 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63793 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64046 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53730 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57975 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51071 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64209 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64209 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61376 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57987 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62073 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58740 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53312 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59073 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59439 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:65220 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 12:13:51,377 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 12:13:51,377 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 12:13:52,478 - INFO - 播放清單共有 1 部影片
+2026-03-25 12:13:52,484 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 1/1)
+INFO:     192.168.100.1:54743 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62405 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64178 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50920 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58637 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61852 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59869 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61938 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50168 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51649 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61017 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53484 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55834 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56461 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58307 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49745 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54650 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55449 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53475 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60328 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 12:23:52,485 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 12:23:52,485 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 12:23:53,487 - INFO - 播放清單共有 1 部影片
+2026-03-25 12:23:53,491 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 1/1)
+INFO:     192.168.100.1:57155 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53075 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59451 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:65031 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62184 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56061 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63880 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58735 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49156 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:65245 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60070 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50123 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56113 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64212 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50735 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57376 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63097 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53789 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54294 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:65489 - "GET /api/dashboard HTTP/1.1" 200 OK
+2026-03-25 12:33:53,492 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 12:33:53,492 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+INFO:     192.168.100.1:58721 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64427 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 12:33:54,515 - INFO - 播放清單共有 1 部影片
+2026-03-25 12:33:54,524 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 1/1)
+INFO:     192.168.100.1:61916 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:65486 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/3/download HTTP/1.1" 401 Unauthorized
+INFO:     192.168.100.1:58720 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64255 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64719 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59960 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64500 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60626 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54575 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62372 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64514 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55092 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60791 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55099 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50077 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59945 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52035 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63193 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57118 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61597 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 12:43:54,525 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 12:43:54,525 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 12:43:55,567 - INFO - 播放清單共有 1 部影片
+2026-03-25 12:43:55,571 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 1/1)
+INFO:     192.168.100.1:60533 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:65436 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52743 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53957 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54950 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50772 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49384 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50225 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54990 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64628 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58860 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53864 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58979 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58986 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49757 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62740 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60546 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60972 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52748 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:65261 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 12:53:55,572 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJINFO:     Waiting for application shutdown.
+2026-03-25 15:27:21,279 - INFO - 排程器已停止
+INFO:     Application shutdown complete.
+INFO:     Finished server process [3419354]
+26-03-25 12:53:56,491 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 1/1)
+INFO:     192.168.100.1:52308 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58418 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63227 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63625 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54342 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62690 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:65208 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:65025 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64348 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50102 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59638 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50492 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55009 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58591 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56948 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62449 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49274 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57491 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62744 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63804 - "GET /api/dashboard HTTP/1.1" 200 OK
+2026-03-25 13:03:56,493 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 13:03:56,493 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 13:03:57,464 - INFO - 播放清單共有 1 部影片
+2026-03-25 13:03:57,468 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 1/1)
+INFO:     192.168.100.1:61788 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63861 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56397 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55151 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52638 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52367 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53554 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54158 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56013 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50735 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62676 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51287 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55895 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54593 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51746 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53465 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53676 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58265 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63018 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:65404 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 13:13:57,470 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 13:13:57,470 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 13:13:58,509 - INFO - 播放清單共有 1 部影片
+2026-03-25 13:13:58,519 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 1/1)
+INFO:     192.168.100.1:56942 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55813 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51813 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54564 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51013 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59463 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52505 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54061 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58723 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53541 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60904 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54757 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54739 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61613 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57594 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:65315 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61903 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55873 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55733 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55015 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 13:23:58,521 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 13:23:58,521 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 13:23:59,561 - INFO - 播放清單共有 1 部影片
+2026-03-25 13:23:59,566 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 1/1)
+INFO:     192.168.100.1:63437 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57853 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52772 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:65194 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50089 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60653 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51588 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63535 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58073 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56606 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63529 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60072 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53017 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50374 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57350 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63935 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51704 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58660 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53203 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59391 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 13:33:59,568 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 13:33:59,568 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 13:34:00,508 - INFO - 播放清單共有 1 部影片
+2026-03-25 13:34:00,513 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 1/1)
+INFO:     192.168.100.1:64298 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62349 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57130 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64018 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64272 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52804 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58819 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57235 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57165 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62137 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55713 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49736 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55753 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53771 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63188 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59825 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61751 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51487 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49231 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59611 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 13:44:00,516 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 13:44:00,516 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 13:44:01,602 - INFO - 播放清單共有 1 部影片
+2026-03-25 13:44:01,612 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 1/1)
+INFO:     192.168.100.1:52268 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53626 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56437 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50714 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53591 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57966 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61872 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51874 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60617 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53387 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56186 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55860 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60882 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62372 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59091 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52826 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54147 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52423 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62361 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62952 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 13:54:01,613 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 13:54:01,614 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 13:54:02,699 - INFO - 播放清單共有 1 部影片
+2026-03-25 13:54:02,702 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 1/1)
+INFO:     192.168.100.1:52677 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54236 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64376 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56209 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50363 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56969 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:65108 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64931 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56190 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62291 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58256 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58943 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54725 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50056 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53588 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53242 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63805 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50954 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57778 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52206 - "GET /api/dashboard HTTP/1.1" 200 OK
+2026-03-25 14:04:02,704 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 14:04:02,704 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 14:04:03,852 - INFO - 播放清單共有 1 部影片
+2026-03-25 14:04:03,856 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 1/1)
+INFO:     192.168.100.1:56261 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59702 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61504 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52627 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58998 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52606 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63520 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52417 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63371 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63995 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54153 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55314 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51164 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53012 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60122 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50417 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60907 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62974 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63219 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63299 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 14:14:03,857 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 14:14:03,857 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 14:14:05,212 - INFO - 播放清單共有 1 部影片
+2026-03-25 14:14:05,216 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 1/1)
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61326 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63802 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60364 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56273 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54246 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62320 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58774 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63005 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64072 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60237 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60599 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52962 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55502 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51012 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61135 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60985 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60448 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54464 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54621 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54707 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 14:24:05,217 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 14:24:05,217 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 14:24:06,318 - INFO - 播放清單共有 1 部影片
+2026-03-25 14:24:06,324 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 1/1)
+INFO:     192.168.100.1:52956 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64271 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55952 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51515 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50721 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62974 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60356 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49522 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57830 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63764 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57034 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51341 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55444 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52496 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49811 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52634 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52837 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62606 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55429 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55435 - "GET /api/dashboard HTTP/1.1" 200 OK
+2026-03-25 14:34:06,325 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 14:34:06,325 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 14:34:07,407 - INFO - 播放清單共有 1 部影片
+2026-03-25 14:34:07,416 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 1/1)
+INFO:     192.168.100.1:63058 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53158 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64600 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49303 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61047 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62973 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51065 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62567 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57768 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60094 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58751 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49591 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54122 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49670 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64610 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56286 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51538 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57030 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57172 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59321 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 14:44:07,418 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 14:44:07,418 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 14:44:08,453 - INFO - 播放清單共有 1 部影片
+2026-03-25 14:44:08,458 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 1/1)
+INFO:     192.168.100.1:53012 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61980 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60471 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64448 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63117 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51984 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62213 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60954 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53673 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51304 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62836 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52531 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63092 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63206 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62151 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52992 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50808 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53690 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59267 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54497 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 14:54:08,459 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 14:54:08,459 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 14:54:09,786 - INFO - 播放清單共有 1 部影片
+2026-03-25 14:54:09,791 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 1/1)
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53154 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51672 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59413 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51092 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53736 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50853 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49340 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58741 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53658 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53941 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50509 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50781 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63814 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60372 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64254 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51141 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/playlists HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/playlists HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53598 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50417 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50767 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56888 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 15:04:09,792 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 15:04:09,792 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 15:04:10,956 - INFO - 播放清單共有 1 部影片
+2026-03-25 15:04:10,960 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 1/1)
+INFO:     192.168.100.1:65060 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52315 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60060 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53080 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61909 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59887 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54963 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56147 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49163 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56302 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55926 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51667 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60057 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54601 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63613 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59005 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55453 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60046 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61012 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57687 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 15:14:10,961 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 15:14:10,962 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 15:14:12,131 - INFO - 播放清單共有 1 部影片
+2026-03-25 15:14:12,135 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 1/1)
+INFO:     192.168.100.1:59445 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60901 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56858 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60111 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56682 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56535 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60210 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53881 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62039 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56893 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63671 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56468 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61167 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56204 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63936 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56028 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59720 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64826 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51021 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:65185 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 15:24:12,137 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 15:24:12,137 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 15:24:13,291 - INFO - 播放清單共有 1 部影片
+2026-03-25 15:24:13,296 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 1/1)
+INFO:     192.168.100.1:53776 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51201 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59202 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57717 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50433 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52075 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54573 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51728 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51728 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54573 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54573 - "GET /api/stream/proofread HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49490 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63029 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64972 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63986 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60066 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53086 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61388 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50590 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64610 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49458 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55919 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63057 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:57982 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54145 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49785 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59450 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49748 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:49829 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63608 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54338 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63953 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62201 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:65356 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52060 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52498 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:65464 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64316 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51470 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:58926 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61556 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54311 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:56390 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61506 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61003 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60974 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51582 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55071 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59009 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 15:34:13,297 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 15:34:13,297 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 15:34:14,565 - INFO - 播放清單共有 1 部影片
+2026-03-25 15:34:14,569 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 1/1)
+INFO:     192.168.100.1:55659 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55981 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54902 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:62832 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61949 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59746 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:61453 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50244 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53719 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:52348 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:54950 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:53834 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:64015 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:65420 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51094 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50199 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:55813 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:50891 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:60851 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63709 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+2026-03-25 15:44:14,570 - INFO - 正在同步播放清單: 佛教禪修初階精進-Test (https://www.youtube.com/watch?v=a6CwYxJXR0w)
+2026-03-25 15:44:14,570 - INFO - 正在取得播放清單資訊: https://www.youtube.com/watch?v=a6CwYxJXR0w
+2026-03-25 15:44:16,085 - INFO - 播放清單共有 1 部影片
+2026-03-25 15:44:16,090 - INFO - 播放清單 佛教禪修初階精進-Test 已同步 (進度: 1/1)
+INFO:     192.168.100.1:54699 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:51174 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     192.168.100.1:59569 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     192.168.100.1:63563 - "GET /api/dashboard HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/tasks/history HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for connections to close. (CTRL+C to force quit)

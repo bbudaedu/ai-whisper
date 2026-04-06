@@ -36,7 +36,7 @@ if os.path.exists(CONFIG_FILE):
 # 中轉 API 設定
 API_BASE_URL = config_data.get("api_base_url", "http://192.168.100.201:8045/v1/chat/completions")
 API_KEY = config_data.get("api_key", "sk-8f3999c2452d4124835ffaff469e22af")
-PUNCTUATION_MODEL = config_data.get("proofread_model", "gemini-3-flash")
+PUNCTUATION_MODEL = config_data.get("punctuation_model", "gemini-2.5-flash")
 PUNCTUATION_CHUNK_SIZE = config_data.get("punct_chunk_size", 120)
 
 def simple_autofit_columns(output_path):
@@ -184,8 +184,8 @@ def generate_excel_and_docx(episode_dir, base_name):
         
     has_gemini = os.path.exists(gemini_srt)
     if not has_gemini:
-        logger.warning(f"找不到 Gemini 修正版 SRT ({gemini_srt})，將僅使用 Whisper 原始字幕。")
-        gemini_srt = whisper_srt
+        logger.error(f"找不到 Gemini 修正版 SRT ({gemini_srt})，放棄產生文件。")
+        return False
 
     # 1. 解析 SRT 時間軸
     logger.info("解析 SRT 時間軸...")
@@ -202,7 +202,27 @@ def generate_excel_and_docx(episode_dir, base_name):
     lines_gemini = read_srt_lines(gemini_srt)
     
     aligned_whisper, aligned_gemini = align_sequences(lines_whisper, lines_gemini)
-    df_aligned = pd.DataFrame({'whisper': aligned_whisper, 'gemini': aligned_gemini})
+    
+    # 計算遺漏句與校對句
+    gemini_omissions = []
+    gemini_corrections = []
+    for w, g in zip(aligned_whisper, aligned_gemini):
+        if w != "" and g == "":
+            gemini_omissions.append(w)
+            gemini_corrections.append("")
+        elif w != "" and g != "" and w != g:
+            gemini_omissions.append("")
+            gemini_corrections.append(g)
+        else:
+            gemini_omissions.append("")
+            gemini_corrections.append("")
+
+    df_aligned = pd.DataFrame({
+        'whisper': aligned_whisper, 
+        'gemini': aligned_gemini,
+        'Gemini遺漏句': gemini_omissions,
+        'Gemini校對句': gemini_corrections
+    })
     df_aligned = df_aligned[df_aligned['whisper'] != ''].copy()
     df_aligned.loc[df_aligned['gemini'] == '', 'gemini'] = df_aligned['whisper']
 

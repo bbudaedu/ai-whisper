@@ -16,7 +16,70 @@ import sys
 import os
 import time
 
-API_BASE = "http://localhost:8000/api"
+API_BASE = "http://localhost:8002/api"
+
+
+# -------------------------------------------------------
+# NotebookLM helper functions
+# -------------------------------------------------------
+
+def notebooklm_status() -> None:
+    try:
+        res = requests.get(f"{API_BASE}/notebooklm/status", timeout=5)
+        res.raise_for_status()
+        data = res.json()
+        quota = data.get("quota", {})
+        queue = data.get("queue", {})
+        print("\n=== NotebookLM 狀態 ===")
+        print(f"今日配額: {quota.get('used', 0)}/{quota.get('limit', 50)} (剩餘 {quota.get('remaining', '?')})")
+        print(f"佇列: {queue.get('total', 0)} 筆 (待處理: {queue.get('pending', 0)})")
+        print("=====================\n")
+    except Exception as e:
+        print(f"❌ 無法取得 NotebookLM 狀態: {e}")
+
+
+def notebooklm_run(episode: str) -> None:
+    try:
+        payload: dict = {"episode": episode} if episode else {}
+        res = requests.post(f"{API_BASE}/notebooklm/trigger", json=payload, timeout=10)
+        res.raise_for_status()
+        data = res.json()
+        if data.get("status") == "success":
+            print(f"✅ NotebookLM 任務已啟動 (enqueued: {data.get('enqueued', 0)} 筆)")
+        else:
+            print(f"⚠️  {data}")
+    except Exception as e:
+        print(f"❌ 觸發失敗: {e}")
+
+
+def notebooklm_queue() -> None:
+    try:
+        res = requests.get(f"{API_BASE}/notebooklm/queue", timeout=5)
+        res.raise_for_status()
+        data = res.json()
+        items = data.get("items", [])
+        print(f"\n=== NotebookLM 佇列 ({len(items)} 筆) ===")
+        for item in items:
+            print(f"  [{item.get('status', '?'):^10}] {item.get('episode_id', '')} - {item.get('output_type', '')}")
+        print("==============================\n")
+    except Exception as e:
+        print(f"❌ 取得佇列失敗: {e}")
+
+
+def notebooklm_quota() -> None:
+    try:
+        res = requests.get(f"{API_BASE}/notebooklm/quota", timeout=5)
+        res.raise_for_status()
+        data = res.json()
+        print("\n=== NotebookLM 配額 ===")
+        print(f"日期: {data.get('date', '?')}")
+        print(f"已使用: {data.get('used', 0)}")
+        print(f"剩餘: {data.get('remaining', '?')}")
+        print(f"每日上限: {data.get('limit', 50)}")
+        print("=====================\n")
+    except Exception as e:
+        print(f"❌ 取得配額失敗: {e}")
+
 
 def print_status():
     try:
@@ -112,12 +175,26 @@ def main():
     # Config
     config_parser = subparsers.add_parser("config", help="查看或修改系統設定")
     config_subparsers = config_parser.add_subparsers(dest="config_action", help="設定動作")
-    
+
     config_subparsers.add_parser("get", help="顯示所有設定")
-    
+
     set_parser = config_subparsers.add_parser("set", help="修改設定")
     set_parser.add_argument("key", help="設定鍵值 (如 whisper_model, proofread_model)")
     set_parser.add_argument("value", help="設定的新值")
+
+    # NotebookLM
+    nlm_parser = subparsers.add_parser("notebooklm", help="NotebookLM 後製自動化管理")
+    nlm_subparsers = nlm_parser.add_subparsers(dest="nlm_action", help="NotebookLM 動作")
+
+    nlm_subparsers.add_parser("status", help="顯示佇列與配額狀態")
+    nlm_subparsers.add_parser("queue", help="列出佇列內容")
+    nlm_subparsers.add_parser("quota", help="顯示今日配額使用狀況")
+
+    nlm_run_parser = nlm_subparsers.add_parser("run", help="手動觸發後製任務")
+    nlm_run_parser.add_argument(
+        "episode", nargs="?", default="",
+        help="集次目錄名 (如 T097V017)，留空則處理全部",
+    )
 
     args = parser.parse_args()
 
@@ -137,8 +214,20 @@ def main():
                 print("❌ 請指定 key 和 value")
         else:
             config_parser.print_help()
+    elif args.command == "notebooklm":
+        if args.nlm_action == "status":
+            notebooklm_status()
+        elif args.nlm_action == "queue":
+            notebooklm_queue()
+        elif args.nlm_action == "quota":
+            notebooklm_quota()
+        elif args.nlm_action == "run":
+            notebooklm_run(args.episode)
+        else:
+            nlm_parser.print_help()
     else:
         parser.print_help()
+
 
 if __name__ == "__main__":
     main()

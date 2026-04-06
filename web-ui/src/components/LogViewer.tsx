@@ -8,7 +8,6 @@ export default function LogViewer() {
     const scrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        setLogs([]);
         const evtSource = new EventSource(`${API_BASE}/stream/${logType}`);
 
         evtSource.onmessage = function (event) {
@@ -34,15 +33,22 @@ export default function LogViewer() {
                     <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
                     <div className="w-3 h-3 rounded-full bg-green-500"></div>
                 </div>
-                <select
-                    value={logType}
-                    onChange={(e) => setLogType(e.target.value)}
-                    className="bg-[#21262d] text-slate-300 border border-slate-700 rounded-md px-3 py-1 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none"
-                >
-                    <option value="proofread">auto_proofread.log</option>
-                    <option value="whisper">auto_youtube_whisper.log</option>
-                    <option value="cron">auto_youtube_whisper_cron.log</option>
-                </select>
+                <div className="flex items-center space-x-2">
+                    <label htmlFor="log_type_selector" className="sr-only">選擇日誌類型</label>
+                    <select
+                        id="log_type_selector"
+                        value={logType}
+                        onChange={(e) => {
+                            setLogType(e.target.value);
+                            setLogs([]);
+                        }}
+                        className="bg-[#21262d] text-slate-300 border border-slate-700 rounded-md px-3 py-1 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                    >
+                        <option value="proofread">youtube_whisper.log (校對)</option>
+                        <option value="whisper">youtube_whisper.log (轉錄)</option>
+                        <option value="cron">youtube_whisper.log (排程)</option>
+                    </select>
+                </div>
             </div>
             <div ref={scrollRef} className="p-4 overflow-y-auto flex-1 text-slate-300 space-y-1">
                 {logs.length === 0 ? (
