@@ -2,6 +2,7 @@ import asyncio
 import json
 import os
 import subprocess
+import logging
 from datetime import datetime
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException, Depends
@@ -24,6 +25,8 @@ from pipeline.playlist_manager import PlaylistManager
 from pipeline.notebooklm_client import NotebookLMClient
 from pipeline.notebooklm_scheduler import NotebookLMScheduler
 from gpu_lock import is_gpu_busy
+
+logger = logging.getLogger(__name__)
 
 # --- Background Workers ---
 _scheduler: TaskScheduler | None = None
@@ -57,7 +60,27 @@ async def lifespan(app: FastAPI):
     )
     await _playlist_worker.start()
 
+    # 3. 啟動 reconcile worker
+    from pipeline.queue.reconcile import TaskReconciler
+
+    async def _reconcile_loop():
+        reconciler = TaskReconciler(session_factory=get_session)
+        while True:
+            try:
+                reconciler.run_once()
+            except Exception as exc:
+                logger.error(f"reconcile 發生錯誤: {exc}", exc_info=True)
+            await asyncio.sleep(60)
+
+    reconcile_task = asyncio.create_task(_reconcile_loop())
+
     yield
+
+    reconcile_task.cancel()
+    try:
+        await reconcile_task
+    except asyncio.CancelledError:
+        pass
 
     # Shutdown: 停止排程器
     if _scheduler is not None:

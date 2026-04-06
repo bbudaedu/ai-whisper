@@ -94,13 +94,35 @@ def build_context_for_stage(
     if task is None:
         raise RuntimeError(f"Task #{stage_task.task_id} not found")
 
+    task_source = getattr(task.source, "value", task.source)
     context: dict = {
         "video_id": task.video_id,
         "title": task.title,
         "playlist_id": task.playlist_id,
         "speaker_name": task.speaker_name,
+        "requester": task.requester,
+        "task_source": task_source,
         "playlist_config": {},
     }
+
+    output_base = None
+    try:
+        import os
+        import json
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        config_path = os.path.join(base_dir, "config.json")
+        if os.path.exists(config_path):
+            with open(config_path, "r", encoding="utf-8") as f:
+                config = json.load(f)
+            if task_source == "external":
+                output_base = config.get("external_output_base")
+            else:
+                output_base = config.get("nas_output_base")
+    except Exception:
+        output_base = None
+
+    if output_base:
+        context["output_base"] = output_base
 
     seed_output = stage_task.get_output()
     if seed_output:

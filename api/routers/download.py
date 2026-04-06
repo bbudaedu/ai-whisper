@@ -68,6 +68,7 @@ async def download_task_results(
         task = repo.get_task(task_id)
         if task is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+        stages = repo.get_stages_for_task(task_id)
 
     if role != "internal" and task.requester != requester:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
@@ -79,6 +80,36 @@ async def download_task_results(
     print(f"DEBUG: OUTPUT_BASE={OUTPUT_BASE}, exists={OUTPUT_BASE.exists()}")
 
     output_dirs: list[Path] = []
+    seen_dirs: set[str] = set()
+    for stage in stages:
+        try:
+            payload = stage.get_output()
+        except Exception:
+            continue
+        if not isinstance(payload, dict):
+            continue
+        episode_dir = payload.get("episode_dir")
+        if isinstance(episode_dir, str) and episode_dir:
+            p = Path(episode_dir)
+            if str(p) not in seen_dirs:
+                output_dirs.append(p)
+                seen_dirs.add(str(p))
+        for key in (
+            "audio_path",
+            "srt_path",
+            "txt_path",
+            "proofread_srt_path",
+            "excel_path",
+            "docx_student_path",
+            "docx_ai_path",
+        ):
+            val = payload.get(key)
+            if isinstance(val, str) and val:
+                p = Path(val).parent
+                if str(p) not in seen_dirs:
+                    output_dirs.append(p)
+                    seen_dirs.add(str(p))
+
     if task.video_id:
         output_dirs.append(OUTPUT_BASE / str(task.video_id))
     output_dirs.append(OUTPUT_BASE / str(task.id))

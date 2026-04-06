@@ -195,6 +195,7 @@ def proofread_chunk(chunk_subtitles, lecture_text, chunk_num, total_chunks, cust
         prompt = custom_prompt.replace("{{lecture_section}}", lecture_section)
         prompt = prompt.replace("{{srt_text}}", srt_text_only)
         prompt = prompt.replace("{{speaker_name}}", speaker_name or "未知")
+        prompt = prompt.replace("{{speaker_label_rule}}", "如果字幕文字前綴含有說話者標籤（例如 \"SPEAKER_00:\"），必須原樣保留，禁止修改或刪除")
     else:
         # Fallback to hardcoded safe default prompt
         prompt = f"""你是一個佛學大師，精通經律論三藏十二部經典，以下文本是whisper產生的字幕文本，關於佛學課程內容，有很多同音字聽打錯誤，幫我依據我提供的上課講義校對文本，嚴格依照以下規則，直接修正錯誤：
@@ -202,6 +203,7 @@ def proofread_chunk(chunk_subtitles, lecture_text, chunk_num, total_chunks, cust
 1.這是講座字幕的文本，依照原本的用字遣詞斷句輸出，重複內容不能省略，不然字幕會出錯混亂
 2.不要加標點符號
 3.輸出繁體中文
+4.如果字幕文字前綴含有說話者標籤（例如 "SPEAKER_00:"），必須原樣保留，禁止修改或刪除
 
 {speaker_section}{lecture_section}
 

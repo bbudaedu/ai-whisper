@@ -143,7 +143,7 @@ def get_whisper_lang_code(lang_str):
     return LANGUAGE_MAP.get(lang, lang_str)
 
 
-def _calculate_episode_dir(title, prefix="T097V"):
+def _calculate_episode_dir(title, prefix="T097V", output_base=None):
     """內部輔助函式：強制路徑結構為 基礎路徑/資料夾前綴/資料夾前綴+集數"""
     # 從標題末尾提取數字
     match = re.search(r'(\d+)\s*$', title)
@@ -154,18 +154,18 @@ def _calculate_episode_dir(title, prefix="T097V"):
         episode_num = title.strip().replace(' ', '_')
 
     # 強制使用 NAS_OUTPUT_BASE 作為根路徑
-    target_base = NAS_OUTPUT_BASE.rstrip(os.sep)
-    
+    target_base = (output_base or NAS_OUTPUT_BASE).rstrip(os.sep)
+
     # 組合路徑：NAS_OUTPUT_BASE / PREFIX / PREFIX###
     series_dir = os.path.join(target_base, prefix)
     episode_dir = os.path.join(series_dir, f"{prefix}{episode_num}")
-    
+
     return episode_dir
 
 
-def get_episode_dir(title, prefix="T097V"):
+def get_episode_dir(title, prefix="T097V", output_base=None):
     """建立影片集數對應資料夾路徑 (固定結構)"""
-    episode_dir = _calculate_episode_dir(title, prefix=prefix)
+    episode_dir = _calculate_episode_dir(title, prefix=prefix, output_base=output_base)
     os.makedirs(episode_dir, exist_ok=True)
     logger.info(f"集數目錄: {episode_dir}")
     return episode_dir
@@ -257,9 +257,9 @@ def check_video_files_exist(title, video_id, prefix="T097V", output_base=None):
     # 取得預期的集數編號 (用於 Legacy 檔名檢查)
     match = re.search(r'(\d+)\s*$', title)
     episode_num = str(int(match.group(1))).zfill(3) if match else title.strip().replace(' ', '_')
-    
+
     # 取得預期目錄 (使用統一邏輯)
-    episode_dir = _calculate_episode_dir(title, prefix=prefix)
+    episode_dir = _calculate_episode_dir(title, prefix=prefix, output_base=output_base)
     
     # 取得安全檔名
     safe_title = "".join(
@@ -445,7 +445,7 @@ def _get_whisper_model(model_name: str) -> "FasterWhisperModel":
     return _whisper_model_cache[model_name]
 
 
-def _write_srt(segments, path: str):
+def _write_srt(segments, path: str, speaker_labels=None):
     """將 faster-whisper segments 列表寫成標準 SRT 格式"""
     def _fmt_ts(t: float) -> str:
         h, rem = divmod(int(t), 3600)
@@ -455,10 +455,15 @@ def _write_srt(segments, path: str):
 
     with open(path, "w", encoding="utf-8") as f:
         for i, seg in enumerate(segments, 1):
-            f.write(f"{i}\n{_fmt_ts(seg.start)} --> {_fmt_ts(seg.end)}\n{seg.text.strip()}\n\n")
+            text = seg.text.strip()
+            if speaker_labels and i - 1 < len(speaker_labels):
+                label = speaker_labels[i - 1]
+                if label:
+                    text = f"{label}: {text}"
+            f.write(f"{i}\n{_fmt_ts(seg.start)} --> {_fmt_ts(seg.end)}\n{text}\n\n")
 
 
-def run_whisper(audio_path, episode_dir, whisper_model, whisper_lang, whisper_prompt):
+def run_whisper(audio_path, episode_dir, whisper_model, whisper_lang, whisper_prompt, enable_diarization=False):
     """使用 faster-whisper Python API 進行語音辨識（比 CLI 快約 4x，VRAM 省約 50%）"""
     basename = os.path.splitext(os.path.basename(audio_path))[0]
     srt_path = os.path.join(episode_dir, f"{basename}.srt")
@@ -494,8 +499,28 @@ def run_whisper(audio_path, episode_dir, whisper_model, whisper_lang, whisper_pr
         logger.error(f"faster-whisper 辨識失敗: {e}")
         return None
 
+    speaker_labels = None
+    if enable_diarization:
+        try:
+            from pipeline.diarization import run_diarization
+
+            diarization = run_diarization(audio_path)
+            if diarization:
+                speaker_labels = []
+                for seg in segments:
+                    midpoint = (seg.start + seg.end) / 2.0
+                    label = None
+                    for start, end, speaker in diarization:
+                        if start <= midpoint <= end:
+                            label = speaker
+                            break
+                    speaker_labels.append(label)
+                logger.info(f"Diarization 完成，共 {len(diarization)} 段")
+        except Exception as e:
+            logger.error(f"Diarization 失敗，改用無標籤輸出: {e}")
+
     # 輸出 SRT
-    _write_srt(segments, srt_path)
+    _write_srt(segments, srt_path, speaker_labels=speaker_labels)
     # 輸出 TXT（純文字）
     with open(txt_path, "w", encoding="utf-8") as f:
         f.write("\n".join(seg.text.strip() for seg in segments))
@@ -604,11 +629,12 @@ def process_video(video, pl_config):
         whisper_result = {"txt": existing_txts[0], "srt": existing_srts[0], "success": True}
     else:
         whisper_result = run_whisper(
-            audio_path, 
-            episode_dir, 
-            whisper_model=whisper_model_pl, 
-            whisper_lang=whisper_lang_pl, 
-            whisper_prompt=whisper_prompt_pl
+            audio_path,
+            episode_dir,
+            whisper_model=whisper_model_pl,
+            whisper_lang=whisper_lang_pl,
+            whisper_prompt=whisper_prompt_pl,
+            enable_diarization=pl_config.get("enable_diarization", False),
         )
         actually_did_work = True
     if not whisper_result:

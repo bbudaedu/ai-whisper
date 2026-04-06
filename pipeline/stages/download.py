@@ -22,9 +22,18 @@ def execute(stage_task: StageTask, context: dict) -> dict:
     video_id = context["video_id"]
     title = context["title"]
     pl_config = context.get("playlist_config", {})
-    prefix = pl_config.get("folder_prefix", "T097V")
+    output_base = context.get("output_base")
+    requester = context.get("requester")
+    task_source = context.get("task_source")
 
-    episode_dir = get_episode_dir(title, prefix=prefix)
+    if output_base and task_source == "external":
+        safe_requester = str(requester or "unknown").strip().replace("/", "_")
+        episode_dir = os.path.join(output_base, safe_requester, str(stage_task.task_id))
+        os.makedirs(episode_dir, exist_ok=True)
+    else:
+        prefix = pl_config.get("folder_prefix", "T097V")
+        episode_dir = get_episode_dir(title, prefix=prefix, output_base=output_base)
+
     video = {"id": video_id, "title": title}
 
     audio_path = download_audio(video, episode_dir)

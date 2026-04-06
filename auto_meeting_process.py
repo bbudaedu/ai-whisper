@@ -44,6 +44,8 @@ WHISPER_PROMPT = "會議記錄 "
 
 # ==========================================
 
+ENABLE_DIARIZATION = os.getenv("ENABLE_DIARIZATION", "false").lower() in {"1", "true", "yes"}
+
 # 設定日誌
 logging.basicConfig(
     level=logging.INFO,
@@ -134,7 +136,7 @@ def run_whisper(filepath):
 
         # 組合純文字
         raw_text = "".join(seg.text.strip() for seg in segments)
-        return raw_text
+        return {"raw_text": raw_text, "segments": segments}
 
     except Exception as e:
         logger.error(f"faster-whisper 辨識失敗: {e}")
@@ -230,12 +232,55 @@ def main():
                     logger.info(f"開始處理: {file}")
 
                     # 1. 執行 faster-whisper 轉錄
-                    raw_text = run_whisper(filepath)
-                    if not raw_text:
+                    whisper_result = run_whisper(filepath)
+                    if not whisper_result:
                         continue
 
-                    # 2. 執行標點修復
-                    final_text = apply_punctuation(raw_text, punctuator)
+                    raw_text = whisper_result["raw_text"]
+                    segments = whisper_result["segments"]
+
+                    if ENABLE_DIARIZATION:
+                        try:
+                            from pipeline.diarization import run_diarization
+
+                            diarization = run_diarization(filepath)
+                            speaker_paragraphs = []
+                            current_label = None
+                            current_text = []
+
+                            for seg in segments:
+                                midpoint = (seg.start + seg.end) / 2.0
+                                label = None
+                                for start, end, speaker in diarization:
+                                    if start <= midpoint <= end:
+                                        label = speaker
+                                        break
+
+                                if label != current_label and current_text:
+                                    speaker_paragraphs.append((current_label, "".join(current_text)))
+                                    current_text = []
+
+                                current_label = label
+                                current_text.append(seg.text.strip())
+
+                            if current_text:
+                                speaker_paragraphs.append((current_label, "".join(current_text)))
+
+                            labeled_blocks = []
+                            for label, block in speaker_paragraphs:
+                                punctuated = apply_punctuation(block, punctuator)
+                                if label:
+                                    labeled_blocks.append(f"{label}: {punctuated}")
+                                else:
+                                    labeled_blocks.append(punctuated)
+
+                            final_text = "\n".join(labeled_blocks)
+                        except Exception as e:
+                            logger.error(f"Diarization 失敗，改用無標籤輸出: {e}")
+                            final_text = apply_punctuation(raw_text, punctuator)
+                    else:
+                        # 2. 執行標點修復
+                        final_text = apply_punctuation(raw_text, punctuator)
 
                     # 3. 產生 DOCX
                     base_name = os.path.splitext(file)[0]

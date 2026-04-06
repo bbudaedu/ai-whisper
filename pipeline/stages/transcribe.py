@@ -24,6 +24,7 @@ def execute(stage_task: StageTask, context: dict) -> dict:
         whisper_model=whisper_model,
         whisper_lang=whisper_lang,
         whisper_prompt=whisper_prompt,
+        enable_diarization=pl_config.get("enable_diarization", False),
     )
     if result is None:
         raise RuntimeError(f"Whisper 辨識失敗: {audio_path}")
